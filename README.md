@@ -12,8 +12,9 @@ La misma aplicación, `tienda-api`, recorre las cuatro clases: se construye, se 
 |---|---|
 | Guía paso a paso del lab | [`clase-01/lab/guia-paso-a-paso.md`](clase-01/lab/guia-paso-a-paso.md) |
 | Aplicación de ejemplo | [`clase-01/lab/app/`](clase-01/lab/app/) |
-| Diapositivas | [`clase-01/slides.md`](clase-01/slides.md) |
+| Diapositivas | [`clase-01/slides.md`](clase-01/slides.md) · [`slides.pptx`](clase-01/slides.pptx) |
 | Guía del instructor | [`clase-01/README.md`](clase-01/README.md) |
+| Guion de sesión del docente | [`clase-01/guia-docente.md`](clase-01/guia-docente.md) |
 | Rúbrica del entregable | [`clase-01/evaluacion/rubrica-clase-01.md`](clase-01/evaluacion/rubrica-clase-01.md) |
 | Checklist de Dockerfile | [`clase-01/recursos/checklist-dockerfile.md`](clase-01/recursos/checklist-dockerfile.md) |
 
@@ -85,7 +86,9 @@ curso-docker/
 ├── curso-docker-avanzado.md      # programa de las 4 clases
 ├── clase-01/
 │   ├── README.md                 # guía del instructor
+│   ├── guia-docente.md           # guion de sesión
 │   ├── slides.md                 # diapositivas (Marp)
+│   ├── slides.pptx               # presentación exportada
 │   ├── lab/                      # guía del alumno + app + Dockerfiles
 │   ├── demos/
 │   ├── evaluacion/

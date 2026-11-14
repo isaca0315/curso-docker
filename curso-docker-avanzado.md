@@ -32,12 +32,12 @@ El ciclo de vida completo queda conectado entre clases.
 | 00:20-01:00 | **Arquitectura y características de Docker**: cliente, daemon, containerd y runc, shims, namespaces y cgroups, capas y overlay2, formato OCI, ciclo de vida de un contenedor |
 | 01:00-01:45 | **Configuración de Docker**: `daemon.json`, storage drivers, límites de CPU/memoria, log drivers y rotación, `data-root`, contextos remotos, Docker rootless, cgroups v2 |
 | 01:45-01:55 | Pausa |
-| 01:55-02:15 | **Construcción de imágenes**: Dockerfile, instrucciones, caché de capas, BuildKit, multi-stage, `.dockerignore`, distroless/alpine, tagging y versionado |
+| 01:55-02:15 | **Construcción de imágenes**: Dockerfile, instrucciones, caché de capas, BuildKit, multi-stage con etapa de test, `.dockerignore`, distroless/alpine, tagging y versionado |
 | 02:15-03:15 | **Lab 1**: imagen multi-stage de `tienda-api`; comparar tamaño contra build ingenuo; inspeccionar capas (`docker history`, `dive`); aplicar límites de CPU/memoria; configurar rotación de logs en el daemon |
 | 03:15-03:25 | Pausa |
-| 03:25-04:00 | **Lab 1 (cierre)**: rebuild con caché en frío vs caliente y medición; reto: bajar la imagen por debajo de 100 MB sin romper la app; puesta en común y cierre |
+| 03:25-04:00 | **Lab 1 (cierre)**: rebuild con caché en frío vs caliente y medición; reto: bajar la imagen por debajo de 100 MB sin romper la app; variante distroless y su costo de depuración; puesta en común y cierre |
 
-**Entregable:** Dockerfile multi-stage funcionando + informe de 5 líneas con tamaños y tiempos medidos.
+**Entregable:** Dockerfile multi-stage con etapa de test funcionando + informe de 5 líneas con tamaños y tiempos medidos.
 
 
 ## Clase 2: Compose y networking avanzado

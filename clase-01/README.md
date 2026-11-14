@@ -6,11 +6,13 @@
 
 | Archivo | Para qué |
 |---|---|
-| `slides.md` | Diapositivas (Marp). Renderizar con `marp slides.md -o slides.pdf` o leerlas como markdown |
+| `slides.md` | Diapositivas (Marp), fuente editable |
+| `slides.pptx` | Presentación lista para proyectar (exportada de `slides.md`) |
 | `lab/guia-paso-a-paso.md` | Guía del alumno, paso a paso con resultados esperados |
+| `guia-docente.md` | Guion de sesión: preparación, tiempos, checkpoints y qué hacer si falla |
 | `lab/README.md` | Índice del lab y resultados esperados |
-| `lab/app/README.md` | Documentación de la aplicación y de los tres Dockerfiles |
-| `lab/app/` | Aplicación `tienda-api` + `Dockerfile.naive`, `Dockerfile`, `Dockerfile.alpine`, `.dockerignore` |
+| `lab/app/README.md` | Documentación de la aplicación y de los cuatro Dockerfiles |
+| `lab/app/` | Aplicación `tienda-api` + `Dockerfile.naive`, `Dockerfile`, `Dockerfile.alpine`, `Dockerfile.distroless`, `.dockerignore` |
 | `demos/01-arquitectura.sh` | Namespaces, cgroups, shims y capas en vivo |
 | `demos/02-limites.sh` | Límites de CPU/memoria y OOM kill |
 | `demos/03-capas-cache.sh` | Tamaño, historial y caché de build |
@@ -22,8 +24,8 @@
 
 **Instructor**
 
-1. Lee este README y revisa la agenda.
-2. Renderiza las diapositivas si las quieres en PDF: `marp slides.md -o slides.pdf` (o proyecta el Markdown).
+1. Lee `guia-docente.md` y revisa la agenda.
+2. Proyecta `slides.pptx`. Si cambias `slides.md`, vuelve a exportar con `marp slides.md --pptx -o slides.pptx` o genera un PDF con `marp slides.md -o slides.pdf`.
 3. Ejecuta los demos una vez antes de clase para confirmar que funcionan en el aula.
 4. Pre-descarga las imágenes de la sección "Preparación del aula".
 
@@ -41,10 +43,10 @@
 | 00:20-01:00 | Arquitectura y características | `slides.md` + `demos/01-arquitectura.sh` |
 | 01:00-01:45 | Configuración de Docker | `slides.md` + `demos/configuracion-daemon.md` |
 | 01:45-01:55 | Pausa | sin material |
-| 01:55-02:15 | Construcción de imágenes (Dockerfile, caché, multi-stage) | `slides.md` |
+| 01:55-02:15 | Construcción de imágenes (Dockerfile, caché, multi-stage con test) | `slides.md` |
 | 02:15-03:15 | Lab 1 | `lab/guia-paso-a-paso.md` pasos 1-6 |
 | 03:15-03:25 | Pausa | sin material |
-| 03:25-04:00 | Reto < 100 MB, puesta en común y cierre | `lab/guia-paso-a-paso.md` pasos 7-8 + `Dockerfile.alpine` |
+| 03:25-04:00 | Reto < 100 MB, variante distroless, puesta en común y cierre | `lab/guia-paso-a-paso.md` pasos 7-8 + `Dockerfile.alpine` + `Dockerfile.distroless` |
 
 ## Conceptos clave
 
@@ -52,15 +54,16 @@
 - **Arquitectura real:** `docker` (CLI) → `dockerd` → `containerd` → `runc` → proceso. El shim mantiene vivo el contenedor si el daemon se reinicia.
 - **Capas:** cada instrucción del Dockerfile crea una capa; el contenedor añade una capa de escritura efímera. `docker diff` lo demuestra.
 - **Orden del Dockerfile:** decide qué capas se reutilizan. Dependencias antes que código.
-- **Multi-stage:** compilar en una etapa, ejecutar en otra. La imagen final solo contiene lo que copias.
+- **Multi-stage:** compilar, probar y ejecutar en etapas separadas. La imagen final solo contiene lo que copias; la etapa de test no se publica, pero bloquea el build si falla.
 - **Usuario no root:** toda imagen de producción necesita un `USER`.
+- **Distroless:** quita shell y gestor de paquetes, y complica la depuración. No siempre pesa menos que alpine; en esta app, 85 MB frente a 79 MB.
 - **Configuración:** el daemon se configura con `daemon.json` o con flags de systemd.
 
 ## Guion de demos
 
 1. **Arquitectura** (`demos/01-arquitectura.sh`): mostrar PID del host, shims, namespaces, cgroup y capa de escritura. Preguntar: *¿dónde está el kernel del contenedor?*
 2. **Límites** (`demos/02-limites.sh`): `--cpus 0.5` se refleja en `cpu.max`; `--memory 64m` termina en OOM (exit 137). Preguntar: *¿qué pasa si no pongo límites?*
-3. **Capas y caché** (`demos/03-capas-cache.sh`): comparar 1.63 GB vs 205 MB vs 79 MB; cambiar el contenido de `app.py` y ver qué pasos se re-ejecutan.
+3. **Capas y caché** (`demos/03-capas-cache.sh`): comparar 1,63 GB con 205 MB; en el reto se añaden alpine (79 MB) y distroless (85 MB). Cambiar el contenido de `app.py` y ver qué pasos se re-ejecutan.
 4. **Daemon** (`demos/configuracion-daemon.md`): inspección en vivo; rotación de logs con flags del CLI. El cambio de `daemon.json` solo se aplica en VM de práctica.
 
 ## Errores comunes y cómo resolverlos
@@ -74,10 +77,13 @@
 | `exec format error` o fallo en alpine | Binarios compilados para otra libc | Compilar en la misma base que se ejecuta (musl vs glibc) |
 | Healthcheck en `starting` para siempre | La app no responde en `/healthz` | `docker logs`; verificar puerto y ruta |
 | `docker build` envía un contexto enorme | Falta `.dockerignore` | Añadir `.git`, `venv`, `node_modules`, etc. |
+| `docker exec <c> sh` falla en distroless | La imagen no tiene shell ni utilidades | Es esperado; usar `docker inspect` o ejecutar Python directamente |
+| En distroless falla una wheel o gunicorn | Builder y base final con versiones distintas de Python | Usar `python:3.11-slim` con `python3-debian12` |
+| El build falla en la etapa `test` | La app no pasa la prueba de humo | Revisar `app.py` con `--progress=plain`; el build no publica la imagen |
 
 ## Evaluación
 
-- Entregable: `Dockerfile` multi-stage funcionando + informe de 5 líneas con tamaños y tiempos medidos.
+- Entregable: `Dockerfile` multi-stage con etapa de test funcionando + informe de 5 líneas con tamaños y tiempos medidos.
 - Rúbrica: `evaluacion/rubrica-clase-01.md` (40 % del curso repartido entre las 4 clases).
 - Cierre oral (5 min): cada alumno responde una pregunta distinta (namespaces, cgroups, capas, multi-stage, caché, OOM).
 
@@ -88,7 +94,9 @@
 docker pull python:3.12
 docker pull python:3.12-slim
 docker pull python:3.12-alpine
+docker pull python:3.11-slim
 docker pull alpine:3.20
+docker pull gcr.io/distroless/python3-debian12:nonroot
 
 # Verificar que el entorno permite límites y nombres de contenedor
 docker run --rm --memory 64m alpine sh -c 'echo ok'

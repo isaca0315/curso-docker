@@ -230,18 +230,24 @@ Demo: `demos/03-capas-cache.sh`
 
 ---
 
-# Multi-stage: compilar sin ensuciar
+# Multi-stage: compilar, probar y publicar
 
 ```dockerfile
 FROM python:3.12-slim AS builder     # herramientas y dependencias
 ...
+FROM python:3.12-slim AS test        # prueba de humo; si falla, no hay imagen
+COPY --from=builder /venv /venv
+RUN python -c "from app import app; ..."
+...
 FROM python:3.12-slim                # solo lo necesario para ejecutar
 COPY --from=builder /venv /venv
+COPY --from=test /app/app.py .
 ```
 
 - La imagen final no incluye compiladores, cachés ni credenciales.
+- La etapa `test` no se publica, pero un fallo detiene el build.
 - Reduce tamaño y superficie de ataque.
-- Patrón habitual: `builder` + runtime mínimo (slim, alpine, distroless).
+- Patrón habitual: `builder` + `test` + runtime mínimo (slim, alpine, distroless).
 
 ---
 
@@ -252,7 +258,7 @@ COPY --from=builder /venv /venv
 | `python:3.12` | ~1 GB | Nunca en producción |
 | `python:3.12-slim` | ~130 MB | Estándar, glibc, compatible |
 | `python:3.12-alpine` | ~50 MB | Tamaño mínimo, ojo con musl |
-| `distroless` | ~50 MB | Sin shell, máxima reducción |
+| `distroless/python3` | ~80 MB | Sin shell ni paquetes, más difícil de depurar |
 
 La base más pequeña reduce el tamaño, pero puede complicar la compatibilidad, los CVEs y la depuración.
 
@@ -311,9 +317,10 @@ Guía: `lab/guia-paso-a-paso.md`
 ## Bajar de 100 MB sin romper la app
 
 - Pista: la base y lo que copias importan más que el código.
-- Referencia: `Dockerfile.alpine` (79 MB).
+- Referencia: `Dockerfile.alpine` (79 MB) y `Dockerfile.distroless` (85 MB, sin shell).
 - Preguntas para la puesta en común:
   - ¿Qué trade-off introduce musl?
+  - ¿Qué ganas y qué pierdes sin shell?
   - ¿Qué dejarías fuera en un entorno real?
   - ¿Cómo verificarías que la app sigue sana?
 

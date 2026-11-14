@@ -7,7 +7,7 @@
 | Criterio | Peso | 4: Excelente | 3: Correcto | 2: Incompleto | 1: Insuficiente |
 |---|---|---|---|---|---|
 | Funcionalidad | 25 | La app responde `/`, `/productos` y `/healthz`; el healthcheck pasa a `healthy` | Responde los 3 endpoints, healthcheck tarda o no está | Falla algún endpoint o el contenedor no arranca sin explicación | No ejecuta |
-| Multi-stage | 20 | Builder + runtime separados; la imagen final solo lleva runtime, dependencias y código | Multi-stage presente pero copia de más | Etapas mal separadas o sin multi-stage | Todo en una etapa |
+| Multi-stage | 20 | Builder, test y runtime separados; la etapa de test bloquea el build; la imagen final solo lleva runtime, dependencias y código | Builder y runtime separados, sin etapa de test o con copias de más | Etapas mal separadas o sin multi-stage | Todo en una etapa |
 | Seguridad básica | 20 | Usuario no root con UID fijo, versiones fijadas, sin secretos, `--no-cache-dir` | No root y versiones fijadas, algún detalle menor | Root o `latest`, sin justificación | Root y secretos/versiones flotantes |
 | Tamaño | 15 | ≤ 100 MB (reto) | ≤ 250 MB | ≤ 600 MB | > 600 MB |
 | Caché y orden | 10 | Dependencias antes que código; explica qué capa se invalida al cambiar `app.py` | Orden correcto, explicación parcial | Orden incorrecto, entiende el concepto | No lo entiende |
@@ -16,12 +16,14 @@
 ## Checklist de evidencia
 
 - [ ] `docker build` termina sin errores desde un contexto limpio.
+- [ ] Si se rompe un endpoint, el build falla en la etapa de test.
 - [ ] `docker run` levanta la app y los tres endpoints responden.
 - [ ] `docker exec <contenedor> id` muestra un UID distinto de 0.
 - [ ] `docker images` muestra el tamaño final y coincide con el informe.
 - [ ] El `Dockerfile` usa una base fijada (no `latest`).
 - [ ] Existe `.dockerignore`.
 - [ ] El informe incluye tamaños naive/optimizada/reto y una decisión justificada.
+- [ ] Si usó distroless, la imagen responde y explica cómo verificó el usuario sin `id` ni shell.
 
 ## Preguntas de la demo (2 min por alumno)
 
@@ -35,6 +37,7 @@ Se eligen al azar; se evalúa la explicación, no la memoria:
 6. ¿Qué pasa si quito `--memory` en un host de producción?
 7. ¿Qué trade-off tiene `alpine` frente a `slim`?
 8. ¿Por qué no se deben pasar secretos por `ENV`?
+9. ¿Qué pierdes al usar una imagen distroless y cómo lo compensas?
 
 ## Nota sobre el reto
 

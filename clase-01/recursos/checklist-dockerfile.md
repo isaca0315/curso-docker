@@ -3,7 +3,7 @@
 ## Base
 
 - [ ] Imagen base fijada por versión (`python:3.12-slim`), nunca `latest`.
-- [ ] La base más pequeña que siga siendo compatible (slim > alpine > distroless, según dependencias).
+- [ ] La base más pequeña que siga siendo compatible (slim, alpine o distroless; distroless no siempre es la más chica).
 - [ ] Un solo proceso principal por contenedor.
 
 ## Contexto y capas
@@ -17,6 +17,7 @@
 ## Multi-stage
 
 - [ ] Herramientas de build solo en la etapa `builder`.
+- [ ] Etapa `test` que valide la app y detenga el build si falla.
 - [ ] La etapa final copia únicamente artefactos (`COPY --from=builder`).
 - [ ] Sin compiladores, tests, cachés ni credenciales en la imagen final.
 
@@ -25,8 +26,9 @@
 - [ ] `USER` no root con UID fijo.
 - [ ] Sin secretos en `ENV`, `ARG`, `COPY` ni `RUN` (quedan en el historial).
 - [ ] Versiones de dependencias fijadas (`flask==3.0.3`).
-- [ ] `HEALTHCHECK` apuntando a un endpoint real.
+- [ ] `HEALTHCHECK` apuntando a un endpoint real; en distroless, en forma exec.
 - [ ] `CMD`/`ENTRYPOINT` en forma exec (`["gunicorn", ...]`), no shell.
+- [ ] Si usas distroless, el builder y la base final comparten versión de Python y no dependes de `sh`.
 
 ## Metadatos
 

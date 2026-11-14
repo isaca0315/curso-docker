@@ -27,7 +27,7 @@ Al terminar serás capaz de:
 | 0 | Verificar el entorno | 5 min |
 | 1 | Construir y ejecutar la imagen ingenua | 10 min |
 | 2 | Medir tamaño, capas y usuario | 8 min |
-| 3 | Escribir el `Dockerfile` multi-stage | 12 min |
+| 3 | Escribir el `Dockerfile` multi-stage con test | 12 min |
 | 4 | Construir, comparar y ejecutar con límites | 10 min |
 | 5 | Experimento de caché | 10 min |
 | 6 | Límites de CPU/memoria y OOM | 10 min |
@@ -268,23 +268,23 @@ En Docker Desktop el socket del daemon vive dentro de la VM. Si el contenedor de
 - [ ] Confirmaste que corre como root.
 
 
-## Paso 3. Escribir el Dockerfile multi-stage
+## Paso 3. Escribir el Dockerfile multi-stage con test
 
-**Objetivo:** separar el entorno de compilación del de ejecución. La imagen final solo lleva lo necesario para correr la app.
+**Objetivo:** separar el entorno de compilación, el de prueba y el de ejecución. La imagen final solo lleva lo necesario para correr la app.
 
 ### 3.1 El concepto
 
 ```text
-Etapa builder                      Etapa final
-┌────────────────────────┐         ┌────────────────────────┐
-│ python:3.12-slim       │         │ python:3.12-slim       │
-│ + pip + dependencias   │ ──────> │ + solo /venv y app.py  │
-│ + caché de pip         │ copia   │ + usuario no root      │
-└────────────────────────┘         └────────────────────────┘
-        (se descarta)                  (lo que se publica)
+Etapa builder              Etapa test                 Etapa final
+┌──────────────────┐       ┌──────────────────┐       ┌──────────────────┐
+│ python:3.12-slim │       │ python:3.12-slim │       │ python:3.12-slim │
+│ + pip + venv     │ ────> │ + /venv + app.py │ ────> │ + /venv + app.py │
+│ + caché de pip   │ copia │ + prueba de humo │ copia │ + usuario no root│
+└──────────────────┘       └──────────────────┘       └──────────────────┘
+      (se descarta)            (no se publica)            (lo que se publica)
 ```
 
-La imagen final solo contiene lo que copias con `COPY --from=builder`.
+La imagen final solo contiene lo que copias de `builder` y de `test`. La etapa `test` no se publica, pero su resultado decide si el build continúa.
 
 ### 3.2 Requisitos
 
@@ -292,9 +292,10 @@ Escribe tu propio `Dockerfile` (o edita el existente) con:
 
 - [ ] Etapa `builder` basada en `python:3.12-slim` que cree un virtualenv en `/venv`.
 - [ ] Dependencias instaladas con `pip install --no-cache-dir -r requirements.txt`.
+- [ ] Etapa `test` que copie `/venv` y `app.py`, y compruebe los tres endpoints con `app.test_client()`.
 - [ ] Etapa final basada en `python:3.12-slim` (no en la imagen completa).
 - [ ] `COPY --from=builder /venv /venv`.
-- [ ] `COPY app.py .` (solo el código necesario, no `COPY . .`).
+- [ ] `COPY --from=test /app/app.py .` para que el build ejecute la etapa de test.
 - [ ] `ENV PATH="/venv/bin:$PATH"` para que `gunicorn` se encuentre.
 - [ ] Usuario sin privilegios con UID fijo.
 - [ ] `EXPOSE 8000`, `HEALTHCHECK` y `CMD` en forma exec.
@@ -306,6 +307,8 @@ Pistas:
 - `HEALTHCHECK` sin `curl` (no está en slim):
   `CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"`
 - `PYTHONDONTWRITEBYTECODE=1` y `PYTHONUNBUFFERED=1` evitan `.pyc` y logs retenidos.
+- Prueba de humo sin levantar el servidor:
+  `RUN python -c "from app import app; c = app.test_client(); assert c.get('/healthz').status_code == 200"`
 
 ### 3.3 Compara con la referencia
 
@@ -314,13 +317,15 @@ Cuando tengas tu versión, compara con `Dockerfile`. No tiene que ser idéntica;
 1. Que la etapa final no copie el builder entero.
 2. Que el usuario no sea root.
 3. Que las dependencias se instalen antes de copiar el código.
+4. Que exista una etapa de test y que un fallo en esa etapa detenga el build.
 
 La solución está explicada línea a línea en el **Apéndice C**.
 
 **Checkpoint:**
 
-- [ ] Tu Dockerfile tiene dos etapas.
+- [ ] Tu Dockerfile tiene al menos tres etapas: `builder`, `test` y runtime.
 - [ ] La etapa final no instala dependencias: las copia.
+- [ ] El build ejecuta la prueba de humo y falla si la app está rota.
 - [ ] Hay un `USER` distinto de root.
 
 
@@ -334,6 +339,12 @@ docker images tienda-api --format 'table {{.Repository}}:{{.Tag}}\t{{.Size}}'
 ```
 
 **Esperado:** `tienda-api:optimized` ~205 MB frente a `tienda-api:naive` 1,63 GB.
+
+El build ejecuta la etapa `test` antes de crear la imagen final. Si la app no pasa la prueba de humo, se detiene y no publica nada. Para ejecutar solo esa etapa:
+
+```bash
+docker build --target test -t tienda-api:test .
+```
 
 En Docker Desktop puedes construirla desde Images > Build image con `Dockerfile` y la etiqueta `tienda-api:optimized`.
 
@@ -385,6 +396,8 @@ done
 | | Naive | Optimizada |
 |---|---|---|
 | Base | `python:3.12` | `python:3.12-slim` |
+| Etapas | 1 | 3 (`builder`, `test`, runtime) |
+| Test en el build | No | Sí |
 | Herramientas de build en la imagen final | Sí | No |
 | Usuario | root | `appuser` |
 | Tamaño | 1,63 GB | 205 MB |
@@ -432,23 +445,22 @@ docker build -f Dockerfile.naive -t tienda-api:naive . --progress=plain 2>&1 \
 
 ```bash
 docker build -t tienda-api:optimized . --progress=plain 2>&1 \
-  | grep -E 'CACHED|COPY app.py|RUN python -m venv'
+  | grep -E 'CACHED|COPY app.py|COPY --from=test|RUN python -m venv|test_client'
 ```
 
 **Esperado (resumen):**
 
 ```text
-#6 [builder 4/4] RUN python -m venv /venv && /venv/bin/pip install ...
-#6 CACHED
-#7 CACHED
+#8 [builder 4/4] RUN python -m venv /venv && /venv/bin/pip install ...
 #8 CACHED
+#9 [test 3/5] COPY --from=builder /venv /venv
 #9 CACHED
-#10 CACHED
-#11 CACHED
-#12 [stage-1 5/5] COPY app.py .
+#10 [test 4/5] COPY app.py .
+#11 [test 5/5] RUN python -c "from app import app; ..."
+#15 [runtime 5/5] COPY --from=test /app/app.py .
 ```
 
-Solo se recopia `app.py`. La instalación de dependencias sigue en caché porque `requirements.txt` no cambió.
+La instalación de dependencias sigue en caché porque `requirements.txt` no cambió. Se re-ejecutan la prueba y la copia del código: ese es el costo de validar en el build.
 
 En Docker Desktop, la vista de build muestra cada paso con la marca CACHED, sin necesidad de filtrar la salida. En PowerShell no hay `grep`: usa `| Select-String 'CACHED|pip install|COPY'`. Los demás comandos de esta sección están traducidos en el Apéndice D.
 
@@ -562,7 +574,7 @@ Antes de mirar la solución, intenta al menos una de estas ideas:
 1. Cambiar la base a `python:3.12-alpine`.
 2. Quitar `pip`, `setuptools` y cachés del virtualenv.
 3. Eliminar documentación y tests del contexto.
-4. Evaluar `distroless` (ojo: la versión de Python debe coincidir).
+4. Probar `distroless` (ojo: la versión de Python debe coincidir y no hay shell).
 
 ### 7.2 Solución de referencia
 
@@ -596,23 +608,66 @@ docker exec tienda-alp id
 
 **Esperado:** mismos JSON, `uid=10001(appuser)`.
 
-### 7.4 El trade-off
+### 7.4 Variante distroless
+
+`Dockerfile.distroless` usa una imagen sin shell ni gestor de paquetes y deja el contenedor con el usuario `nonroot` (65532). Como la etapa final no puede ejecutar `RUN`, las dependencias se instalan con `--target` en el builder y se copian enteras.
+
+Si el tiempo aprieta, el docente construye esta variante y la muestra; no es obligatorio que cada alumno la escriba.
+
+```bash
+docker build -f Dockerfile.distroless -t tienda-api:distroless .
+docker run -d --name tienda-dis -p 18003:8000 tienda-api:distroless
+sleep 3
+curl -s localhost:18003/
+curl -s localhost:18003/productos
+curl -s localhost:18003/healthz
+docker inspect --format 'User={{.Config.User}}' tienda-dis
+docker inspect --format 'Health={{.State.Health.Status}}' tienda-dis
+```
+
+**Esperado:** `tienda-api:distroless` ~85 MB, `User=65532`, healthcheck `healthy` y los mismos tres JSON.
+
+Ahora prueba a entrar:
+
+```bash
+docker exec tienda-dis sh
+docker exec tienda-dis ls /
+docker exec tienda-dis id
+```
+
+Los tres fallan con `executable file not found in $PATH`: no hay shell, ni `ls`, ni `id`. Para ver el UID se usa Python o la configuración de la imagen:
+
+```bash
+docker exec tienda-dis /usr/bin/python3.11 -c 'import os; print(os.getuid())'
+```
+
+Detalles del Dockerfile:
+
+- El builder es `python:3.11-slim` porque `python3-debian12` trae Python 3.11. Si usas 3.12, las wheels compiladas no cargan.
+- `pip install --target /deps` y `PYTHONPATH=/deps` reemplazan al virtualenv. `rm -rf /deps/bin` quita los scripts de arranque, porque el entrypoint llama a `python -m gunicorn`.
+- El `HEALTHCHECK` va en forma exec (`["/usr/bin/python3.11", "-c", "..."]`) porque no existe `/bin/sh`.
+- El usuario viene de la etiqueta `:nonroot`, no de un `USER` propio.
+
+En Docker Desktop puedes construirla desde Images > Build image con `Dockerfile.distroless`, pero el `exec` interactivo no sirve: no hay shell.
+
+### 7.5 El trade-off
 
 | Aspecto | `slim` (glibc) | `alpine` (musl) | `distroless` |
 |---|---|---|---|
-| Tamaño | ~205 MB | ~79 MB | ~50 MB |
-| Compatibilidad con wheels | Alta | Media (puede requerir compilar) | Alta si coincide la versión |
+| Tamaño | ~205 MB | ~79 MB | ~85 MB |
+| Compatibilidad con wheels | Alta | Media (puede requerir compilar) | Alta si coincide la versión de Python |
 | Shell para depurar | Sí | Sí (busybox) | No |
 | Superficie de ataque | Media | Menor | Menor |
 | Facilidad para el equipo | Alta | Media | Baja |
 
-El tamaño menor tiene costos: si una dependencia nativa no tiene wheel para musl, el build falla o hay que instalar un compilador, y la imagen vuelve a crecer.
+El tamaño menor tiene costos: si una dependencia nativa no tiene wheel para musl, el build falla o hay que instalar un compilador, y la imagen vuelve a crecer. Distroless tampoco es siempre la más chica: en este caso pesa más que alpine, y a cambio quita shell y paquetes del sistema.
 
 **Checkpoint:**
 
 - [ ] La imagen baja de 100 MB.
 - [ ] Los tres endpoints responden.
 - [ ] Sabes explicar al menos un trade-off.
+- [ ] Si probaste distroless, sabes por qué no hay shell ni `id` y cómo se verifica el usuario sin ellos.
 
 
 ## Paso 8. Entregable y cierre
@@ -660,8 +715,8 @@ Te pueden preguntar cualquiera de estas; se evalúa la explicación, no la memor
 ### 8.4 Limpieza
 
 ```bash
-docker rm -f tienda-naive tienda-opt tienda-alp 2>/dev/null || true
-docker rmi tienda-api:naive tienda-api:optimized tienda-api:alpine 2>/dev/null || true
+docker rm -f tienda-naive tienda-opt tienda-alp tienda-dis 2>/dev/null || true
+docker rmi tienda-api:naive tienda-api:optimized tienda-api:alpine tienda-api:distroless 2>/dev/null || true
 ```
 
 No borres imágenes ni contenedores de otros compañeros: elimina solo los que creaste tú.
@@ -688,8 +743,11 @@ En Docker Desktop, la papelera de Containers elimina el contenedor y la de Image
 | `OOMKilled=false` pero exit 137 | Estado aún no actualizado | Espera 1 s y repite `docker inspect`; confirma `docker info --format '{{.CgroupVersion}}'` |
 | El build no reutiliza caché | Cambió el contenido, el orden es distinto o usaste `--no-cache` | Revisa el orden `COPY`/`RUN` y ejecuta con `--progress=plain` |
 | `no matching distribution found` en Alpine | Dependencia sin wheel para musl | Instala el compilador en el builder o vuelve a `slim` |
+| El build falla en la etapa `test` | La app no pasa la prueba de humo | Ejecuta el mismo `python -c` en local o revisa el error con `--progress=plain` |
 | `no space left on device` | Imágenes y caché acumuladas | `docker system df`; borra solo tus imágenes y, si es tu equipo, `docker builder prune` |
 | El reto no baja de 100 MB | Quedan `pip`, `setuptools` o caché en el venv | Limpia el virtualenv en la etapa builder como en `Dockerfile.alpine` |
+| `docker exec <c> sh` falla con `executable file not found` | La imagen es distroless y no tiene shell | Es esperado; usa `docker exec <c> /usr/bin/python3.11 -c '...'` o `docker inspect` |
+| En distroless falla `gunicorn` o una wheel | El builder y la imagen final usan versiones distintas de Python | Compila con la misma versión que trae la base (3.11 para `python3-debian12`) |
 
 
 ## Apéndice A. Chuleta de comandos
@@ -699,6 +757,8 @@ En Docker Desktop, la papelera de Containers elimina el contenedor y la de Image
 docker build -f Dockerfile.naive -t tienda-api:naive .
 docker build -t tienda-api:optimized .
 docker build -f Dockerfile.alpine -t tienda-api:alpine .
+docker build -f Dockerfile.distroless -t tienda-api:distroless .
+docker build --target test -t tienda-api:test .
 docker build --progress=plain -t tienda-api:optimized .
 
 # Ejecutar
@@ -728,16 +788,19 @@ docker builder prune
 
 ## Apéndice B. Resultados esperados
 
-| Medición | Naive | Optimizada | Alpine (reto) |
-|---|---|---|---|
-| Tamaño | 1,63 GB | 205 MB | 78,7 MB |
-| Base | `python:3.12` | `python:3.12-slim` | `python:3.12-alpine` |
-| Usuario | root (0) | 10001 | 10001 |
-| Healthcheck | No | Sí | No (mínimo a propósito) |
-| Multi-stage | No | Sí | Sí |
-| Endpoints | 3/3 | 3/3 | 3/3 |
-| OOM con 64m | no aplica | exit 137 | no aplica |
-| CPU con `--cpus 0.5` | no aplica | ~50 % | no aplica |
+| Medición | Naive | Optimizada | Alpine (reto) | Distroless |
+|---|---|---|---|---|
+| Tamaño | 1,63 GB | 205 MB | 78,7 MB | 84,8 MB |
+| Base | `python:3.12` | `python:3.12-slim` | `python:3.12-alpine` | `distroless/python3-debian12` |
+| Python | 3.12 | 3.12 | 3.12 | 3.11 |
+| Usuario | root (0) | 10001 | 10001 | 65532 |
+| Shell | Sí | Sí | Sí | No |
+| Healthcheck | No | Sí | No (mínimo a propósito) | Sí (forma exec) |
+| Multi-stage | No | Sí | Sí | Sí |
+| Etapas | 1 | 3 | 2 | 2 |
+| Endpoints | 3/3 | 3/3 | 3/3 | 3/3 |
+| OOM con 64m | no aplica | exit 137 | no aplica | no aplica |
+| CPU con `--cpus 0.5` | no aplica | ~50 % | no aplica | no aplica |
 
 Los tamaños pueden variar unos MB según la versión de la imagen base y la arquitectura.
 
@@ -754,8 +817,25 @@ COPY requirements.txt .
 RUN python -m venv /venv \
     && /venv/bin/pip install --no-cache-dir -r requirements.txt
 
-# Etapa 2: ejecución. Empieza de cero con la base mínima.
-FROM python:3.12-slim
+# Etapa 2: probar la app antes de publicarla.
+FROM python:3.12-slim AS test
+
+# gunicorn está en /venv; estas variables evitan .pyc y buffering de logs.
+ENV PATH="/venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+COPY --from=builder /venv /venv
+COPY app.py .
+# Prueba de humo con el cliente de Flask: no necesita levantar el servidor.
+RUN python -c "from app import app; c = app.test_client(); \
+    assert c.get('/healthz').status_code == 200; \
+    assert c.get('/productos').get_json()['productos']; \
+    assert c.get('/').get_json()['servicio'] == 'tienda-api'"
+
+# Etapa 3: ejecución. Empieza de cero con la base mínima.
+FROM python:3.12-slim AS runtime
 
 # gunicorn está en /venv; estas variables evitan .pyc y buffering de logs.
 ENV PATH="/venv/bin:$PATH" \
@@ -767,7 +847,8 @@ RUN useradd --create-home --uid 10001 appuser
 WORKDIR /app
 # Del builder solo viaja el virtualenv, no el compilador ni la caché.
 COPY --from=builder /venv /venv
-COPY app.py .
+# Se copia desde test para que Docker ejecute esa etapa y valide la app.
+COPY --from=test /app/app.py .
 
 # A partir de aquí, todo corre sin privilegios.
 USER appuser
@@ -779,6 +860,12 @@ HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
 # Forma exec: el proceso recibe las señales directamente (SIGTERM limpio).
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
 ```
+
+### Por qué una etapa de test
+
+- El build se detiene antes de publicar una imagen rota.
+- La imagen final no lleva las dependencias ni los archivos del test: solo se copia `app.py` desde esa etapa.
+- En CI se puede ejecutar sola con `docker build --target test .`.
 
 ### Por qué no `COPY . .`
 
