@@ -19,8 +19,8 @@ Las clases 2 a 4 se añadirán a medida que se impartan.
 
 ## Requisitos
 
-- Docker 24 o superior.
-- Terminal en Linux, macOS o WSL2.
+- Docker Engine 24 o superior, o Docker Desktop 4.30 o superior.
+- Terminal en Linux, macOS o WSL2. En Windows, PowerShell también sirve: la guía incluye un apéndice con las diferencias.
 - 4 GB de disco libre para el lab de la clase 1.
 - Git para clonar el repositorio.
 

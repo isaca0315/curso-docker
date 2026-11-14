@@ -31,7 +31,7 @@ Cada paso indica el objetivo del comando, el resultado esperado y qué hacer si 
 
 ## Antes de empezar
 
-- Docker 24+ funcionando (`docker run --rm hello-world`).
+- Docker 24 o superior (Engine o Desktop) funcionando (`docker run --rm hello-world`).
 - 4 GB de disco libre (la primera descarga de `python:3.12` ronda 1 GB).
 - Terminal en `clase-01/lab/app`.
 - Puertos 18000, 18001 y 18002 libres; si no, usa otros y ajusta `-p`.

@@ -5,6 +5,7 @@
 | Duración | 60 min (pasos 1-6) + 20 min (reto, paso 7) + 15 min (entregable, paso 8) |
 | Directorio de trabajo | `clase-01/lab/app` |
 | Imagen de partida | `python:3.12` (~1 GB de descarga la primera vez) |
+| Docker | Engine 24 o superior (CLI) o Docker Desktop 4.30 o superior |
 | Disco libre recomendado | 4 GB |
 | Entregable | `Dockerfile` multi-stage + informe de 5 líneas |
 
@@ -38,12 +39,54 @@ Al terminar serás capaz de:
 - Todos los comandos se ejecutan desde `clase-01/lab/app` salvo que se indique otra cosa.
 - Los nombres de contenedor (`tienda-naive`, `tienda-opt`, `tienda-alp`) son únicos a propósito para poder borrarlos sin tocar otros.
 - Los puertos del host son 18000, 18001 y 18002. Si están ocupados, cambia solo el número de la izquierda (`-p 18100:8000`).
+- Los comandos están en bash. En PowerShell, el Apéndice D traduce las diferencias.
 - Los tamaños son los medidos en Linux x86-64 con Docker 29. En macOS/Windows con Docker Desktop pueden variar unos MB por la arquitectura y la VM.
+
+
+## Docker CLI o Docker Desktop
+
+Todos los comandos de la guía funcionan igual con Docker Engine y con Docker Desktop. Cambia dónde corre el daemon y lo que puedes hacer sin teclear.
+
+| | Docker Engine (CLI) | Docker Desktop |
+|---|---|---|
+| Daemon | Corre en tu Linux, como servicio del sistema | Corre en una VM Linux que gestiona la aplicación |
+| Instalación | Paquete `docker-ce` del repositorio de Docker | Instalador gráfico |
+| Arranque | `sudo systemctl start docker` | Abre la aplicación y espera a que el motor diga *running* |
+| Uso sin `sudo` | Añade tu usuario al grupo `docker` | Ya viene configurado |
+| Interfaz gráfica | No incluye | Images, Containers, Volumes, Build |
+| Sistemas | Linux (también en servidores) | Linux, macOS y Windows |
+| Licencia | Apache 2.0 | Gratis para uso personal, educativo y empresas pequeñas; las grandes necesitan suscripción |
+
+Instalación:
+
+- Docker Engine: <https://docs.docker.com/engine/install/>
+- Docker Desktop: <https://docs.docker.com/desktop/>
+
+Docker Desktop crea un contexto propio, normalmente `desktop-linux`. Compruébalo con `docker context ls` y actívalo con `docker context use desktop-linux` si tienes varios.
+
+Esta tabla traduce la guía a la interfaz gráfica. Los nombres de los menús cambian entre versiones; si no encuentras una opción, usa el comando de la columna izquierda.
+
+| Comando de la guía | Dónde está en Docker Desktop |
+|---|---|
+| `docker build` | Images > Build image |
+| `docker run` | Images > Run (icono de play) |
+| `docker ps` | Containers > lista |
+| `docker logs` | Containers > pestaña Logs |
+| `docker inspect` | Containers > pestaña Inspect |
+| `docker stats` | Containers > pestaña Stats |
+| `docker exec ... sh` | Containers > pestaña Exec |
+| `docker images` | Images > columna Size |
+| `docker history` | Images > detalle de la imagen > capas |
+| `docker rm` y `docker rmi` | Icono de papelera en Containers o Images |
+
+Cada paso del laboratorio incluye una nota "En Docker Desktop" con el equivalente gráfico cuando aporta algo. Los límites de memoria y CPU se explican mejor con la CLI: en la interfaz solo se ajustan los recursos globales de la VM, no los de un contenedor concreto.
 
 
 ## Paso 0. Verificar el entorno
 
 **Objetivo:** confirmar que Docker funciona, que hay espacio y que los límites de recursos están disponibles.
+
+Arranca el motor antes de ejecutar nada. En Linux con Engine: `sudo systemctl start docker`. Con Docker Desktop: abre la aplicación y espera a que indique *Engine running*.
 
 ```bash
 docker version
@@ -59,13 +102,15 @@ df -h .
 - `hello-world` termina con `Hello from Docker!`.
 - Al menos 4 GB libres en el directorio.
 
+En Docker Desktop el daemon corre en una VM Linux, así que el driver y el cgroup que ves son los de esa VM. En Windows, `df -h` no existe en PowerShell: usa `Get-PSDrive C` y mira la columna `Free`. El espacio que importa es el de la unidad donde Docker Desktop guarda sus datos, que puedes consultar en Settings > Resources.
+
 **Checkpoint:**
 
 - [ ] El daemon responde.
 - [ ] `docker ps` no da error de permisos.
 - [ ] Hay espacio suficiente.
 
-Si `docker version` muestra solo el cliente, el daemon no está arrancado. En Linux: `sudo systemctl start docker`. En Docker Desktop: abre la aplicación y espera a que diga *Running*.
+Si `docker version` muestra solo el cliente, el daemon no está arrancado. En Linux: `sudo systemctl start docker`. En Docker Desktop: abre la aplicación y espera a que diga *Running*. Si el error menciona `dockerDesktopLinuxEngine`, el motor de Desktop todavía está arrancando o la aplicación está cerrada.
 
 Entra al directorio y mira lo que hay:
 
@@ -109,6 +154,8 @@ La primera vez descarga la imagen `python:3.12` completa (~1 GB). Puede tardar v
 | `-t tienda-api:naive` | Nombre (`repositorio:etiqueta`) de la imagen resultante |
 | `.` | Contexto de build: todo lo no ignorado en este directorio se envía al builder |
 
+En Docker Desktop: Images > Build image. Elige la carpeta `app` como contexto, `Dockerfile.naive` como archivo y `tienda-api:naive` como etiqueta. La imagen resultante es la misma.
+
 ### 1.3 Ejecuta
 
 ```bash
@@ -120,6 +167,8 @@ docker run -d --name tienda-naive -p 18000:8000 tienda-api:naive
 | `-d` | En segundo plano (*detached*) |
 | `--name tienda-naive` | Nombre fijo para poder referenciarlo |
 | `-p 18000:8000` | Puerto del host 18000 → puerto 8000 del contenedor |
+
+En Docker Desktop: Images > `tienda-api:naive` > Run. En el formulario pon `tienda-naive` como nombre y publica el puerto 18000 hacia el 8000 del contenedor. El resto de valores por defecto sirve.
 
 Comprueba que arrancó:
 
@@ -189,6 +238,8 @@ docker inspect --format 'User="{{.Config.User}}"' tienda-naive
 
 **Esperado:** `uid=0(root)` y `User=""` (vacío significa root).
 
+En Docker Desktop, la pestaña Inspect del contenedor muestra el mismo `Config.User`. La columna Size de Images muestra el tamaño de la imagen.
+
 Si un proceso root escapa del contenedor, el daño posible en el host es mayor. En la imagen final lo corregiremos con `USER`.
 
 ### 2.4 (Opcional) Ver las capas visualmente
@@ -200,6 +251,8 @@ docker run --rm -it \
 ```
 
 Fíjate en *Image efficiency*. Sal con `Ctrl+C`. Si no tienes red o la imagen no está disponible, sáltalo: no es necesario para el resto del lab.
+
+En Docker Desktop el socket del daemon vive dentro de la VM. Si el contenedor de `dive` no conecta, prueba con `-v //var/run/docker.sock:/var/run/docker.sock` o prescinde de esta sección: `docker history` y la vista de capas de Images dan la misma información.
 
 **Preguntas para responder en tus notas:**
 
@@ -282,6 +335,8 @@ docker images tienda-api --format 'table {{.Repository}}:{{.Tag}}\t{{.Size}}'
 
 **Esperado:** `tienda-api:optimized` ~205 MB frente a `tienda-api:naive` 1,63 GB.
 
+En Docker Desktop puedes construirla desde Images > Build image con `Dockerfile` y la etiqueta `tienda-api:optimized`.
+
 ### 4.2 Ejecuta con límites
 
 ```bash
@@ -295,6 +350,8 @@ docker run -d --name tienda-opt -p 18001:8000 \
 | `--cpus 0.5` | Como máximo, medio núcleo de CPU |
 
 Los límites los impone el kernel mediante cgroups: la aplicación no puede superarlos.
+
+El formulario Run de Docker Desktop no siempre permite fijar memoria y CPU; para estos dos límites usa la CLI. Settings > Resources cambia el techo de la VM completa, que comparten todos los contenedores; no equivale a `--memory` en uno solo.
 
 ### 4.3 Verifica funcionamiento, usuario y salud
 
@@ -393,6 +450,8 @@ docker build -t tienda-api:optimized . --progress=plain 2>&1 \
 
 Solo se recopia `app.py`. La instalación de dependencias sigue en caché porque `requirements.txt` no cambió.
 
+En Docker Desktop, la vista de build muestra cada paso con la marca CACHED, sin necesidad de filtrar la salida. En PowerShell no hay `grep`: usa `| Select-String 'CACHED|pip install|COPY'`. Los demás comandos de esta sección están traducidos en el Apéndice D.
+
 ### 5.4 Restaura el archivo
 
 ```bash
@@ -438,6 +497,8 @@ Interpretación:
 - `cpu.max = "50000 100000"`: 50 ms de CPU por cada 100 ms de periodo = 0,5 CPU.
 
 Si el archivo no existe, estás en cgroups v1 (Docker Desktop antiguo). Usa `/sys/fs/cgroup/memory/memory.limit_in_bytes` y `/sys/fs/cgroup/cpu/cpu.cfs_quota_us`.
+
+En Docker Desktop esta comprobación funciona igual: se ejecuta dentro del contenedor, que es Linux, aunque tu equipo sea macOS o Windows.
 
 ### 6.2 Provoca un OOM
 
@@ -511,6 +572,8 @@ docker images tienda-api --format 'table {{.Repository}}:{{.Tag}}\t{{.Size}}'
 ```
 
 **Esperado:** `tienda-api:alpine` ~79 MB.
+
+En Docker Desktop: Images > Build image con `Dockerfile.alpine` y la etiqueta `tienda-api:alpine`.
 
 Diferencias clave con `Dockerfile`:
 
@@ -603,12 +666,18 @@ docker rmi tienda-api:naive tienda-api:optimized tienda-api:alpine 2>/dev/null |
 
 No borres imágenes ni contenedores de otros compañeros: elimina solo los que creaste tú.
 
+En Docker Desktop, la papelera de Containers elimina el contenedor y la de Images la imagen. Si la imagen todavía tiene contenedores asociados, borra primero los contenedores.
+
 
 ## Solución de problemas
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | `Cannot connect to the Docker daemon` | Daemon parado o sin permisos | `sudo systemctl start docker`; añade tu usuario al grupo `docker` y vuelve a iniciar sesión |
+| `error during connect ... dockerDesktopLinuxEngine` | Docker Desktop está cerrado o el motor aún arranca | Abre la aplicación y espera a *Engine running*; revisa `docker context ls` |
+| `curl` devuelve HTML o un error de `Invoke-WebRequest` | En PowerShell `curl` es un alias de `Invoke-WebRequest` | Usa `curl.exe` o `Invoke-RestMethod http://localhost:18000/` |
+| `docker: command not found` tras instalar Desktop | La terminal se abrió antes de la instalación | Cierra y abre una terminal nueva; comprueba con `docker version` |
+| Un archivo montado con `-v` no refleja los cambios | La carpeta no está compartida con la VM | Settings > Resources > File sharing y añade esa ruta |
 | `bind: address already in use` | Puerto 18000/18001/18002 ocupado | Usa otro puerto a la izquierda: `-p 18100:8000`. Comprueba con `docker ps` |
 | El contenedor aparece `Exited (1)` | Error al arrancar la app | `docker logs <nombre>` para ver el traceback |
 | `curl: (7) Failed to connect` | Aún arrancando o puerto mal mapeado | Espera 2 s, revisa `docker ps` y el mapeo `0.0.0.0:18000->8000/tcp` |
@@ -724,3 +793,40 @@ CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
 ### Por qué el `HEALTHCHECK` no usa `curl`
 
 `python:3.12-slim` no incluye `curl`. Instalarlo solo para el healthcheck añade peso y superficie de ataque. `urllib` ya está en la librería estándar.
+
+## Apéndice D. Windows y PowerShell
+
+Docker Desktop en Windows suele usar el backend WSL2. Los comandos `docker` son idénticos a los de Linux; cambian las utilidades del sistema.
+
+Elige la terminal. Los fragmentos de esta guía usan bash (`cp`, `printf`, `tail`, `grep`, `seq`, `sleep`). Git Bash o una distro WSL2 los ejecutan tal cual. En PowerShell, adapta con esta tabla:
+
+| Bash | PowerShell |
+|---|---|
+| `df -h .` | `Get-PSDrive C` |
+| `cp app.py /tmp/app.py.bak` | `Copy-Item app.py $env:TEMP\app.py.bak` |
+| `cp /tmp/app.py.bak app.py` | `Copy-Item $env:TEMP\app.py.bak app.py` |
+| `printf '\n# texto\n' >> app.py` | `Add-Content app.py '# texto'` |
+| `tail -3 app.py` | `Get-Content app.py -Tail 3` |
+| `sleep 3` | `Start-Sleep -Seconds 3` |
+| `curl -s localhost:18000/` | `curl.exe -s localhost:18000/` |
+| `docker rm -f x 2>/dev/null \|\| true` | `docker rm -f x 2>$null` |
+| `for i in $(seq 1 12); do ...; done` | Usa Git Bash o WSL2 |
+
+`curl` en PowerShell es un alias de `Invoke-WebRequest`, que no acepta las mismas opciones. `curl.exe` es el binario real. También puedes usar `Invoke-RestMethod http://localhost:18000/productos`.
+
+Las líneas partidas con `\` no funcionan en PowerShell. Escribe el comando en una sola línea o cambia `\` por un acento grave:
+
+```powershell
+docker run -d --name tienda-opt -p 18001:8000 `
+  --memory 128m --cpus 0.5 tienda-api:optimized
+```
+
+El comando de OOM del Paso 6.2 lleva un salto de línea dentro de las comillas. En PowerShell, escríbelo con un acento grave seguido de `n`:
+
+```powershell
+docker run -d --name oom-demo --memory 64m tienda-api:optimized python -c "a = bytearray(200 * 1024 * 1024)`nfor i in range(0, len(a), 4096): a[i] = 1"
+```
+
+Rutas y puertos no cambian dentro de los contenedores: siguen siendo `/app`, `/venv` y el puerto 8000. En el host, `cd clase-01\lab\app` y `-p 18000:8000` funcionan igual.
+
+Si `docker run --rm hello-world` funciona en PowerShell, el resto de comandos `docker` de la guía también.

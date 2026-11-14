@@ -1,6 +1,6 @@
 # Clase 1: arquitectura, configuración y construcción de imágenes
 
-**Duración:** 4 h · **Participantes:** 6 · **Requisitos:** Docker 24+ y terminal Linux/macOS/WSL2
+**Duración:** 4 h · **Participantes:** 6 · **Requisitos:** Docker Engine 24+ o Docker Desktop 4.30+ y terminal Linux/macOS/WSL2
 
 ## Materiales
 
