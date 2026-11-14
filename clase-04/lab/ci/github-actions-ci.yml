@@ -1,0 +1,58 @@
+name: CI de tienda-api
+
+# Copia este archivo a .github/workflows/ci.yml para activarlo.
+# El repositorio del curso lo deja como ejemplo para no ejecutar
+# pipelines en cada push de los alumnos.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  imagen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construir la imagen endurecida
+        run: |
+          docker build \
+            -f clase-02/lab/app/Dockerfile.hardened \
+            -t tienda-api:4.0 \
+            clase-02/lab/app
+
+      - name: Gates de usuario y tamaño
+        run: |
+          chmod +x clase-04/lab/ci/verificar-imagen.sh
+          clase-04/lab/ci/verificar-imagen.sh tienda-api:4.0
+
+      - name: Escanear con Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: tienda-api:4.0
+          format: sarif
+          output: trivy.sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "0"
+
+      - name: Publicar el informe SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy.sarif
+
+      # El push al registry va al final y solo en main.
+      # Descomenta y configura las credenciales cuando tengas registry.
+      # - name: Publicar imagen
+      #   if: github.ref == 'refs/heads/main'
+      #   run: |
+      #     echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ghcr.io \
+      #       -u "${{ github.actor }}" --password-stdin
+      #     docker tag tienda-api:4.0 ghcr.io/${{ github.repository }}/tienda-api:4.0
+      #     docker push ghcr.io/${{ github.repository }}/tienda-api:4.0

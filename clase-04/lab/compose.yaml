@@ -1,0 +1,111 @@
+name: tienda-segura
+
+# Stack de la clase 4: el mismo de la clase 2 con el runtime endurecido.
+# No incluye proxy para mantener el foco en la seguridad de la API.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: "0.50"
+    environment:
+      POSTGRES_DB: tienda
+      POSTGRES_USER: tienda
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tienda -d tienda"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    user: "999:1000"
+    mem_limit: 256m
+    cpus: "0.25"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ../../clase-02/lab/app
+      dockerfile: Dockerfile.hardened
+    image: tienda-api:4.0
+    restart: unless-stopped
+    user: "10001:10001"
+    mem_limit: 256m
+    cpus: "0.50"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "18030:8000"
+    environment:
+      APP_VERSION: "4.0"
+      DATABASE_HOST: db
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: tienda
+      DATABASE_USER: tienda
+      DB_PASSWORD_FILE: /run/secrets/db_password
+      REDIS_URL: redis://redis:6379/0
+    secrets:
+      - db_password
+    networks:
+      - backend
+      - edge
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  db_data:
+    name: tienda_segura_db_data
+  redis_data:
+    name: tienda_segura_redis_data
+
+networks:
+  backend:
+    name: tienda_segura_backend
+    internal: true
+  edge:
+    name: tienda_segura_edge
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt

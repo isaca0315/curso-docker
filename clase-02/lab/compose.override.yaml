@@ -1,0 +1,12 @@
+services:
+  api:
+    ports:
+      - "18011:8000"
+    environment:
+      APP_VERSION: dev
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--reload", "--workers", "1", "app:app"]
+    develop:
+      watch:
+        - action: sync
+          path: ./app
+          target: /app

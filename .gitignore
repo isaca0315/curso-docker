@@ -3,3 +3,7 @@ venv/
 __pycache__/
 *.pyc
 .DS_Store
+clase-02/lab/secrets/db_password.txt
+clase-04/lab/secrets/db_password.txt
+*.sarif
+sbom.json

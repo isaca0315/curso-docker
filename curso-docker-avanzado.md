@@ -44,6 +44,8 @@ El ciclo de vida completo queda conectado entre clases.
 
 **Objetivos:** describir aplicaciones multi-contenedor de forma declarativa y diagnosticar problemas de red, DNS y conectividad entre contenedores.
 
+**Material de la clase:** [`clase-02/`](clase-02/README.md) (guía del instructor, diapositivas, lab, demos y rúbrica).
+
 | Hora | Bloque |
 |---|---|
 | 00:00-00:15 | Repaso y dudas de la clase 1 |
@@ -60,6 +62,8 @@ El ciclo de vida completo queda conectado entre clases.
 ## Clase 3: muchas aplicaciones: orquestación y Kubernetes en acción
 
 **Objetivos:** reconocer por qué el despliegue manual deja de escalar y operar una aplicación real en Kubernetes: despliegue, auto-reparación, escalado y actualizaciones sin caída.
+
+**Material de la clase:** [`clase-03/`](clase-03/README.md) (guía del instructor, diapositivas, lab, demos y rúbrica).
 
 | Hora | Bloque |
 |---|---|
@@ -80,27 +84,29 @@ El ciclo de vida completo queda conectado entre clases.
 
 **Objetivos:** endurecer imágenes y contenedores, medir el riesgo con herramientas y automatizar build → escaneo → despliegue dentro de un flujo existente.
 
+**Material de la clase:** [`clase-04/`](clase-04/README.md) (guía del instructor, diapositivas, lab, demos y rúbrica).
+
 | Hora | Bloque |
 |---|---|
 | 00:00-00:10 | Repaso y dudas de la clase 3 |
 | 00:10-01:00 | **Seguridad de Docker**: superficie de ataque, imagen base y CVEs, usuario no-root, `cap-drop`, `read-only`, `no-new-privileges`, seccomp/AppArmor, límites de recursos, secretos (nunca en la imagen), riesgo del socket de Docker, rootless, benchmarks con `docker-bench-security` |
-| 01:00-01:45 | **Lab 4a**: endurecer la imagen de `tienda-api` (non-root, distroless, cap-drop, read-only); escanear con `trivy` antes y después; SBOM y firma con `cosign`; comparar `docker scout` |
+| 01:00-01:45 | **Lab 4a**: imagen endurecida de `tienda-api` (usuario sin shell, sin pip en runtime, non-root); ejecutarla con sistema de solo lectura, `cap-drop` y `no-new-privileges`; comprobar identidad, capacidades, tamaño y redes |
 | 01:45-01:55 | Pausa |
 | 01:55-02:45 | **CI/CD para aplicaciones Docker**: etapas build → test → scan → push → deploy, caché de build, tags inmutables (SHA, semver), entornos y promoción, GitOps, integración en un flujo ya existente (GitHub Actions / GitLab CI / Jenkins / Azure DevOps) |
-| 02:45-03:40 | **Lab 4b**: pipeline que construye, corre tests, falla si `trivy` encuentra severidad alta, publica la imagen y despliega a `kind` de forma automática |
+| 02:45-03:40 | **Lab 4b**: gates deterministas de usuario y tamaño; Trivy como informe y SBOM; overlay de Kubernetes con `securityContext`; workflow de GitHub Actions con SARIF y publicación por digest |
 | 03:40-04:00 | **Mejores prácticas de contenedores y orquestación** (checklist final), brief del proyecto integrador y cierre del curso |
 
-**Entregable:** pipeline funcionando + checklist de hardening aplicado a la app.
+**Entregable:** pipeline con gates + checklist de hardening aplicado a la app.
 
 
 ## Proyecto integrador (transversal)
 
 Al final de la clase 4 cada participante entrega el recorrido completo de `tienda-api`:
 
-1. Imagen multi-stage < 100 MB, non-root, escaneada sin CVEs altas.
+1. Imagen multi-stage de menos de 300 MB, non-root y con informe de escaneo revisado.
 2. `compose.yaml` con redes separadas, healthchecks y secretos fuera del repo.
 3. Despliegue en `kind` con probes, límites y al menos 2 réplicas.
-4. Pipeline que reproduce todo lo anterior desde un push.
+4. Pipeline que reproduce build, gates, escaneo y SBOM desde un push.
 
 Se evalúa en una demo de 10 min por persona (o parejas si el grupo lo prefiere).
 
