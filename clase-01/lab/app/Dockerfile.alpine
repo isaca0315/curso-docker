@@ -1,0 +1,26 @@
+# Solución del reto: variante alpine, para discutir musl y superficie de ataque.
+# El build ocurre en alpine, así que las wheels coinciden con la imagen final.
+FROM python:3.12-alpine AS builder
+
+WORKDIR /app
+COPY requirements.txt .
+RUN python -m venv /venv \
+    && /venv/bin/pip install --no-cache-dir --no-compile -r requirements.txt \
+    && rm -rf /venv/lib/python3.12/site-packages/pip* \
+              /venv/lib/python3.12/site-packages/setuptools* \
+              /venv/bin/pip*
+
+FROM python:3.12-alpine
+
+ENV PATH="/venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN adduser -D -u 10001 appuser
+WORKDIR /app
+COPY --from=builder /venv /venv
+COPY app.py .
+
+USER appuser
+EXPOSE 8000
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
