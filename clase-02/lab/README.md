@@ -13,6 +13,7 @@ Cada paso indica el objetivo, el comando, el resultado esperado y qué comprobar
 | Archivo | Contenido |
 |---|---|
 | [`guia-paso-a-paso.md`](guia-paso-a-paso.md) | Guía completa (pasos 0-8) |
+| [`retos-diagnostico.md`](retos-diagnostico.md) | Cuatro averías cronometradas para el bloque de cierre |
 | [`compose.yaml`](compose.yaml) | Stack base: API, Postgres, Redis, Nginx, redes y secreto |
 | [`compose.override.yaml`](compose.override.yaml) | Modo desarrollo: puerto 18011, recarga y watch |
 | [`app/`](app/) | Código de la API y su Dockerfile multi-stage |

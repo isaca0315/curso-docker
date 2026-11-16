@@ -487,7 +487,7 @@ tail -3 app.py
 
 ## Paso 6. Límites y OOM
 
-**Objetivo:** ver los límites desde dentro del contenedor y provocar un OOM controlado.
+**Objetivo:** aplicar techos de RAM y CPU, verlos desde dentro del contenedor y provocar un OOM controlado.
 
 ### 6.1 Lee los límites en cgroups v2
 
@@ -539,10 +539,44 @@ docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}' cpu-demo
 
 **Esperado:** alrededor de `50%`. El proceso pide todo el núcleo, pero el cgroup solo le da medio.
 
-### 6.4 Limpia
+### 6.4 Reserva, peso, núcleos y procesos
+
+`--memory` y `--cpus` son techos. Los demás flags reparten o acotan de otra forma:
 
 ```bash
-docker rm -f oom-demo cpu-demo
+docker run -d --name lim-demo -p 18090:8000 \
+  --memory 128m --memory-reservation 64m \
+  --cpus 0.5 --cpu-shares 512 --cpuset-cpus 0 \
+  --pids-limit 100 tienda-api:optimized
+
+for f in memory.max memory.low cpu.max cpu.weight cpuset.cpus.effective pids.max; do
+  printf '%-24s' "$f"
+  docker exec lim-demo cat /sys/fs/cgroup/$f
+done
+```
+
+**Esperado:**
+
+```text
+memory.max              134217728
+memory.low              67108864
+cpu.max                 50000 100000
+cpu.weight              59
+cpuset.cpus.effective   0
+pids.max                100
+```
+
+- `memory.low` es la reserva: el kernel intenta no bajar de ahí, pero no es un techo.
+- `cpu.weight` sale de `--cpu-shares`. Por sí solo no limita: decide quién gana cuando hay competencia.
+- `cpuset.cpus.effective` fija los núcleos que ve el contenedor. Útil para licencias por núcleo o para aislar latencia.
+- `pids.max` frena una bomba de procesos.
+
+Con `--memory 128m`, Docker permite además 128 MiB de swap (`memory.swap.max`). `--memory-swap 128m` fija el total de RAM más swap y quita ese margen.
+
+### 6.5 Limpia
+
+```bash
+docker rm -f oom-demo cpu-demo lim-demo
 ```
 
 **Preguntas:**
@@ -550,12 +584,14 @@ docker rm -f oom-demo cpu-demo
 1. ¿Qué habría pasado sin `--memory` en un host con 8 GB?
 2. ¿Qué diferencia hay entre el límite y el uso real?
 3. ¿Por qué el OOM se ve como exit 137 y no como un error de la app?
+4. ¿Por qué `--cpu-shares` no limita la CPU si hay un solo contenedor?
 
 **Checkpoint:**
 
 - [ ] Viste los límites dentro del contenedor.
 - [ ] Provocaste un OOM con exit 137.
 - [ ] Confirmaste el límite de CPU al 50 %.
+- [ ] Leíste reserva, peso, núcleos y pids en cgroups.
 
 
 ## Paso 7. Reto: bajar de 100 MB

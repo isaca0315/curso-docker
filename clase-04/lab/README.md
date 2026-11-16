@@ -13,6 +13,7 @@ La guía incluye resultados medidos, el fallo de Redis con `cap_drop` y las deci
 | Archivo | Contenido |
 |---|---|
 | [`guia-paso-a-paso.md`](guia-paso-a-paso.md) | Guía completa (pasos 0-8) |
+| [`retos-auditoria.md`](retos-auditoria.md) | Cuatro comprobaciones de auditoría para el bloque de cierre |
 | [`compose.yaml`](compose.yaml) | Stack con `read_only`, `cap_drop`, `no-new-privileges` y red interna |
 | [`ci/verificar-imagen.sh`](ci/verificar-imagen.sh) | Gates de usuario y tamaño, Trivy opcional |
 | [`ci/github-actions-ci.yml`](ci/github-actions-ci.yml) | Ejemplo de workflow para copiar a `.github/workflows/` |

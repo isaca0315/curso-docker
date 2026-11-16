@@ -98,6 +98,24 @@ Demo: `demos/02-limites.sh`
 
 ---
 
+# Límites de CPU y RAM
+
+| Quiero | Flag | cgroup v2 |
+|---|---|---|
+| Techo de memoria | `--memory 128m` | `memory.max` |
+| Reserva de memoria | `--memory-reservation 64m` | `memory.low` |
+| Techo de CPU | `--cpus 0.5` | `cpu.max` |
+| Peso entre contenedores | `--cpu-shares 512` | `cpu.weight` |
+| Núcleos concretos | `--cpuset-cpus 0` | `cpuset.cpus.effective` |
+| Máximo de procesos | `--pids-limit 100` | `pids.max` |
+
+- `--memory` es un techo duro: al pasarlo, OOM kill (137).
+- `--memory-reservation` es blando: solo actúa bajo presión de memoria.
+- `--cpu-shares` no pone techo: reparte CPU cuando varios contenedores compiten.
+- Solo `--cpus` y `--cpuset-cpus` limitan CPU de verdad.
+
+---
+
 # Capas: la imagen es inmutable
 
 ```text

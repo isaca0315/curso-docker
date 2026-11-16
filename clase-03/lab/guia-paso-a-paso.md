@@ -2,7 +2,7 @@
 
 | Dato | Valor |
 |---|---|
-| Duración | 60 min (lab 3a) + 30 min (lab 3b) |
+| Duración | 4 h de clase; 90 min de laboratorio (55 min lab 3a + 35 min lab 3b) más 10 min de HPA si hay `metrics-server` |
 | Directorio de trabajo | `clase-03/lab` |
 | Clúster | `kind`, un nodo de control, Kubernetes 1.31 |
 | Imagen | `tienda-api:3.0`, construida desde `clase-02/lab/app` |
@@ -23,7 +23,7 @@ Al terminar serás capaz de:
 
 | Paso | Qué haces | Tiempo |
 |---|---|---|
-| 0 | Instalar `kind` y `kubectl` | 10 min |
+| 0 | Verificar `kind` y `kubectl` | 5 min |
 | 1 | Crear el clúster y comprobar el nodo | 8 min |
 | 2 | Construir la imagen y cargarla en `kind` | 8 min |
 | 3 | Aplicar manifiestos y ver el estado | 15 min |
@@ -32,7 +32,7 @@ Al terminar serás capaz de:
 | 6 | Ingress | 10 min |
 | 7 | Rolling update y rollback | 10 min |
 | 8 | Romper una probe a propósito | 8 min |
-| 9 | HPA con carga, limpieza y entregable | 12 min |
+| 9 | HPA con carga | 10 min |
 
 ## Convenciones
 
@@ -43,11 +43,19 @@ Al terminar serás capaz de:
 - Los comandos están en bash. En Windows, usa WSL2 o Git Bash: `kind` y `kubectl` funcionan igual.
 
 
-## Paso 0. Instalar `kind` y `kubectl`
+## Paso 0. Verificar `kind` y `kubectl`
 
-**Objetivo:** tener las dos herramientas en el PATH y comprobar que hablan con Docker.
+**Objetivo:** tener las dos herramientas en el PATH y comprobar que hablan con Docker. Llegan instaladas de casa; aquí solo se comprueba la versión.
 
-Linux x86-64:
+```bash
+kind version
+kubectl version --client=true
+docker info --format '{{.ServerVersion}}'
+```
+
+**Esperado:** `kind v0.24.0` o superior, `kubectl v1.31.0` o superior y la versión del daemon.
+
+Si falta alguna, instálala ahora y avisa: Linux x86-64:
 
 ```bash
 curl -Lo kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
@@ -63,16 +71,6 @@ brew install kind kubectl
 ```
 
 Windows: instala dentro de WSL2 con los comandos de Linux, o usa `choco install kind kubernetes-cli`.
-
-Comprueba:
-
-```bash
-kind version
-kubectl version --client=true
-docker info --format '{{.ServerVersion}}'
-```
-
-**Esperado:** `kind v0.24.0` o superior, `kubectl v1.31.0` o superior y la versión del daemon.
 
 Docker Desktop incluye un Kubernetes propio en Settings > Kubernetes. Sirve para practicar, pero el laboratorio usa `kind` porque permite cargar imágenes locales sin registry y recrear el clúster en segundos. No actives los dos a la vez: compiten por recursos.
 

@@ -1,6 +1,6 @@
 # Curso de Docker Avanzado
 
-Material del curso: 4 clases de 4 horas, 16 h en total, para 6 participantes.
+Material del curso: 4 clases de 4 horas, 16 h en total, para 6 participantes. Incluye un extra opcional de 40 min de Compose al final de la clase 1. Cada clase tiene una presentación en PowerPoint y una hora de contenido de reserva por si el grupo avanza rápido.
 
 Programa completo: [`curso-docker-avanzado.md`](curso-docker-avanzado.md)
 
@@ -17,6 +17,7 @@ La misma aplicación, `tienda-api`, recorre las cuatro clases: se construye, se 
 | Guion de sesión del docente | [`clase-01/guia-docente.md`](clase-01/guia-docente.md) |
 | Rúbrica del entregable | [`clase-01/evaluacion/rubrica-clase-01.md`](clase-01/evaluacion/rubrica-clase-01.md) |
 | Checklist de Dockerfile | [`clase-01/recursos/checklist-dockerfile.md`](clase-01/recursos/checklist-dockerfile.md) |
+| Extra de Compose (40 min) | [`clase-01/extra-compose/`](clase-01/extra-compose/README.md) |
 
 ## Clase 2: Compose y networking avanzado
 
@@ -25,8 +26,11 @@ La misma aplicación, `tienda-api`, recorre las cuatro clases: se construye, se 
 | Guía paso a paso del lab | [`clase-02/lab/guia-paso-a-paso.md`](clase-02/lab/guia-paso-a-paso.md) |
 | Stack de Compose | [`clase-02/lab/compose.yaml`](clase-02/lab/compose.yaml) |
 | Aplicación y proxy | [`clase-02/lab/app/`](clase-02/lab/app/) · [`clase-02/lab/proxy/`](clase-02/lab/proxy/) |
-| Diapositivas | [`clase-02/slides.md`](clase-02/slides.md) |
+| Diapositivas | [`clase-02/slides.md`](clase-02/slides.md) · [`slides.pptx`](clase-02/slides.pptx) |
 | Guía del instructor | [`clase-02/README.md`](clase-02/README.md) |
+| Guion de sesión del docente | [`clase-02/guia-docente.md`](clase-02/guia-docente.md) |
+| Hora extra (3 bloques de 20 min) | [`clase-02/extra-60-min.md`](clase-02/extra-60-min.md) |
+| Retos de diagnóstico | [`clase-02/lab/retos-diagnostico.md`](clase-02/lab/retos-diagnostico.md) |
 | Rúbrica del entregable | [`clase-02/evaluacion/rubrica-clase-02.md`](clase-02/evaluacion/rubrica-clase-02.md) |
 | Checklist de Compose | [`clase-02/recursos/checklist-compose.md`](clase-02/recursos/checklist-compose.md) |
 
@@ -37,8 +41,11 @@ La misma aplicación, `tienda-api`, recorre las cuatro clases: se construye, se 
 | Guía paso a paso del lab | [`clase-03/lab/guia-paso-a-paso.md`](clase-03/lab/guia-paso-a-paso.md) |
 | Manifiestos | [`clase-03/lab/manifests/`](clase-03/lab/manifests/) |
 | Configuración del clúster | [`clase-03/lab/kind-config.yaml`](clase-03/lab/kind-config.yaml) |
-| Diapositivas | [`clase-03/slides.md`](clase-03/slides.md) |
+| Diapositivas | [`clase-03/slides.md`](clase-03/slides.md) · [`slides.pptx`](clase-03/slides.pptx) |
 | Guía del instructor | [`clase-03/README.md`](clase-03/README.md) |
+| Guion de sesión del docente | [`clase-03/guia-docente.md`](clase-03/guia-docente.md) |
+| Hora extra (3 bloques de 20 min) | [`clase-03/extra-60-min.md`](clase-03/extra-60-min.md) |
+| Retos de diagnóstico | [`clase-03/lab/retos-diagnostico.md`](clase-03/lab/retos-diagnostico.md) |
 | Rúbrica del entregable | [`clase-03/evaluacion/rubrica-clase-03.md`](clase-03/evaluacion/rubrica-clase-03.md) |
 | Checklist de Kubernetes | [`clase-03/recursos/checklist-kubernetes.md`](clase-03/recursos/checklist-kubernetes.md) |
 
@@ -52,8 +59,11 @@ La misma aplicación, `tienda-api`, recorre las cuatro clases: se construye, se 
 | Gates de CI | [`clase-04/lab/ci/verificar-imagen.sh`](clase-04/lab/ci/verificar-imagen.sh) |
 | Workflow de ejemplo | [`clase-04/lab/ci/github-actions-ci.yml`](clase-04/lab/ci/github-actions-ci.yml) |
 | Overlay de Kubernetes | [`clase-04/lab/k8s/`](clase-04/lab/k8s/) |
-| Diapositivas | [`clase-04/slides.md`](clase-04/slides.md) |
+| Diapositivas | [`clase-04/slides.md`](clase-04/slides.md) · [`slides.pptx`](clase-04/slides.pptx) |
 | Guía del instructor | [`clase-04/README.md`](clase-04/README.md) |
+| Guion de sesión del docente | [`clase-04/guia-docente.md`](clase-04/guia-docente.md) |
+| Hora extra (3 bloques de 20 min) | [`clase-04/extra-60-min.md`](clase-04/extra-60-min.md) |
+| Retos de auditoría | [`clase-04/lab/retos-auditoria.md`](clase-04/lab/retos-auditoria.md) |
 | Rúbrica del entregable | [`clase-04/evaluacion/rubrica-clase-04.md`](clase-04/evaluacion/rubrica-clase-04.md) |
 | Checklist de seguridad | [`clase-04/recursos/checklist-seguridad.md`](clase-04/recursos/checklist-seguridad.md) |
 

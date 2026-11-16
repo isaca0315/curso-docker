@@ -3,6 +3,8 @@ marp: true
 theme: default
 paginate: true
 header: "Docker Avanzado · Clase 3"
+style: |
+  section { font-size: 22px; }
 ---
 
 # Docker Avanzado
@@ -355,9 +357,9 @@ El concepto se repite; cambia quién reconcilia el estado.
 
 ---
 
-# Lab 3a (50 min)
+# Lab 3a (55 min)
 
-1. Instalar `kind` y `kubectl`
+1. Verificar `kind` y `kubectl`
 2. Crear el clúster y comprobar el nodo
 3. Construir la imagen y cargarla en `kind`
 4. Aplicar manifiestos y ver el estado
@@ -368,7 +370,7 @@ Guía: `lab/guia-paso-a-paso.md`
 
 ---
 
-# Lab 3b (60 min)
+# Lab 3b (35 min)
 
 1. Instalar `ingress-nginx` y publicar `tienda.local`
 2. Rolling update a 3.1 y rollback a 3.0
@@ -411,7 +413,7 @@ Checklist:
 <!--
 Notas para el instructor:
 - No instalar el Ingress antes del paso 6: el controlador tarda y distrae.
-- Tener el YAML de ingress-nginx y metrics-server descargado si el aula no tiene Internet.
+- Tener el YAML de ingress-nginx y metrics-server descargado si falla la conexión.
 - La demo de HPA necesita 60-90 segundos antes de mostrar el escalado.
 - Si la memoria va justa, saltar el HPA y dejar los manifiestos como lectura.
 -->

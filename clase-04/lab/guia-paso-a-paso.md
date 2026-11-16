@@ -2,7 +2,7 @@
 
 | Dato | Valor |
 |---|---|
-| Duración | 90 min |
+| Duración | 4 h de clase; 100 min de laboratorio (55 min lab 4a + 45 min lab 4b) |
 | Directorio de trabajo | `clase-04/lab` |
 | Imagen | `tienda-api:4.0` (se construye en el paso 2) |
 | Disco libre recomendado | 2 GB |
@@ -27,7 +27,7 @@ Al terminar serás capaz de:
 | 1 | Leer el Dockerfile endurecido y compararlo | 10 min |
 | 2 | Construir y comprobar identidad, shell y tamaño | 10 min |
 | 3 | Endurecer el runtime con Compose | 20 min |
-| 4 | Ejecutar los gates de CI | 15 min |
+| 4 | Ejecutar los gates de CI | 10 min |
 | 5 | Escanear con Trivy y generar el SBOM | 15 min |
 | 6 | Aplicar el overlay en Kubernetes (opcional) | 10 min |
 | 7 | Leer el pipeline de GitHub Actions | 10 min |

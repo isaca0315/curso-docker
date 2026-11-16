@@ -7,7 +7,12 @@
 | Archivo | Para qué |
 |---|---|
 | `slides.md` | Diapositivas (Marp). Renderizar con `marp slides.md -o slides.pdf` o proyectar el Markdown |
+| `slides.pptx` | Presentación lista para proyectar (exportada de `slides.md`) |
+| `extra-60-min.md` | Tres bloques de 20 min si el grupo termina antes |
+| `guia-docente.md` | Guion de sesión: preparación, tiempos, checkpoints y planes de contingencia |
 | `lab/guia-paso-a-paso.md` | Guía del alumno con resultados esperados y diagnóstico |
+| `lab/lab-2c.md` | Lab opcional de 60 min: override, copia de seguridad y redes a mano |
+| `lab/retos-diagnostico.md` | Cuatro averías cronometradas para el bloque de cierre |
 | `lab/compose.yaml` | Stack base: API, Postgres, Redis, Nginx, redes y secreto |
 | `lab/compose.override.yaml` | Modo desarrollo con recarga y `docker compose watch` |
 | `lab/app/` | Código y Dockerfile de la API con Postgres y Redis |
@@ -24,8 +29,11 @@
 
 1. Ejecuta `docker compose up -d --build` en `lab/` antes de clase y comprueba los cuatro servicios sanos.
 2. Pre-descarga las imágenes de la sección "Preparación del aula".
-3. Ten a mano la guía de diagnóstico: es el entregable principal de la clase.
-4. La demo de `macvlan` solo funciona en un host Linux con interfaz en la LAN. Si el aula es de laptops, proyéctala y explica; no la asignes como obligatoria.
+3. Proyecta `slides.pptx` y sigue `guia-docente.md` para los tiempos, los checkpoints y los planes B.
+4. Ten a mano la guía de diagnóstico: es el entregable principal de la clase.
+5. Usa `lab/retos-diagnostico.md` en el bloque de cierre: los cuatro retos son parte del plan. Solo si surge una emergencia de tiempo, haz los retos 1 y 3 y deja el resto para casa.
+6. Si el grupo termina antes, `lab/lab-2c.md` agrupa el contenido de los tres bloques de reserva en un laboratorio de 60 min. La versión corta para el instructor está en `extra-60-min.md`.
+7. La demo de `macvlan` solo funciona en un host Linux con interfaz en la LAN. Si los participantes usan laptops, explícala con la pantalla compartida; no la asignes como obligatoria.
 
 **Alumno**
 
@@ -38,12 +46,17 @@
 | Hora | Bloque | Material |
 |---|---|---|
 | 00:00-00:15 | Repaso y dudas de la clase 1 | `docker images`, preguntas del lab 1 |
-| 00:15-01:00 | Compose: servicios, redes, volúmenes, secretos, `depends_on`, profiles, override, watch | `slides.md` |
-| 01:00-01:50 | Lab 2a: stack completo, orden de arranque, redes separadas, persistencia | `lab/guia-paso-a-paso.md` pasos 0-6 |
+| 00:15-00:55 | Compose: servicios, redes, volúmenes, secretos, `depends_on`, profiles, override, watch | `slides.md` |
+| 00:55-01:50 | Lab 2a: stack completo, orden de arranque, redes separadas, persistencia | `lab/guia-paso-a-paso.md` pasos 0-3 |
 | 01:50-02:00 | Pausa | sin material |
-| 02:00-02:50 | Networking: bridge, user-defined, DNS, `host`, `none`, `macvlan`, `overlay`, iptables, `netshoot` | `slides.md` + `demos/01-redes.sh` |
-| 02:50-03:50 | Lab 2b: aislamiento, DNS roto, captura con `netshoot`, `host` vs bridge, `macvlan` opcional | `lab/guia-paso-a-paso.md` pasos 4-7 + `demos/02-dns-roto.sh` |
-| 03:50-04:00 | Cierre y reto: por qué `localhost` no cruza contenedores | `slides.md` |
+| 02:00-02:40 | Networking: bridge, user-defined, DNS, `host`, `none`, `macvlan`, `overlay`, iptables, `netshoot` | `slides.md` + `demos/01-redes.sh` |
+| 02:40-03:25 | Lab 2b: aislamiento, DNS roto, captura con `netshoot`, `host` vs bridge, `macvlan` opcional | `lab/guia-paso-a-paso.md` pasos 4-6 + `demos/02-dns-roto.sh` |
+| 03:25-03:50 | Retos de diagnóstico en parejas | `lab/retos-diagnostico.md` |
+| 03:50-04:00 | Entregable, dudas y cierre | `lab/guia-paso-a-paso.md` paso 8 |
+
+El paso 7 (override, watch y Adminer) se explica en la teoría y queda como extensión para quien termine antes o como deberes.
+
+Si sobra una hora, `lab/lab-2c.md` junta el paso 7, la copia de seguridad de Postgres y las redes a mano en un laboratorio de 60 min. No ocupa un hueco en la agenda de 240 min; se usa como reserva.
 
 ## Conceptos clave
 
@@ -93,4 +106,4 @@ docker pull nicolaka/netshoot:latest
 ss -ltn | grep 18010 || echo "18010 libre"
 ```
 
-Si el aula comparte un host, asigna a cada alumno un sufijo de proyecto (`tienda-ana`, `tienda-luis`) y un rango de puertos (`18010 + 10*n`). En Docker Desktop, cada alumno trabaja en su equipo.
+Cada participante trabaja en su equipo, así que los nombres fijos no chocan. Si dos personas comparten host, asigna un sufijo de proyecto (`tienda-ana`, `tienda-luis`) y un rango de puertos (`18010 + 10*n`).

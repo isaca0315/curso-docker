@@ -13,6 +13,7 @@ Empieza en el paso 0, crea el clúster y sigue el orden. Cada paso incluye el re
 | Archivo | Contenido |
 |---|---|
 | [`guia-paso-a-paso.md`](guia-paso-a-paso.md) | Guía completa (pasos 0-9) |
+| [`retos-diagnostico.md`](retos-diagnostico.md) | Cuatro averías cronometradas sobre el clúster |
 | [`kind-config.yaml`](kind-config.yaml) | Clúster de un nodo con puertos 18020 y 18443 para el Ingress |
 | [`manifests/`](manifests/) | Namespace, Secret, Postgres, Redis, API, Ingress y HPA |
 | [`../demos/01-autoreparacion.sh`](../demos/01-autoreparacion.sh) | Borrar un pod y ver el reemplazo |

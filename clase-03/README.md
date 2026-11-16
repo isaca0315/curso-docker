@@ -7,7 +7,11 @@
 | Archivo | Para qué |
 |---|---|
 | `slides.md` | Diapositivas (Marp). Renderizar con `marp slides.md -o slides.pdf` o proyectar el Markdown |
+| `slides.pptx` | Presentación lista para proyectar (exportada de `slides.md`) |
+| `extra-60-min.md` | Tres bloques de 20 min si el grupo termina antes |
+| `guia-docente.md` | Guion de sesión: preparación, tiempos, checkpoints y planes B |
 | `lab/guia-paso-a-paso.md` | Guía del alumno con resultados medidos y diagnóstico |
+| `lab/retos-diagnostico.md` | Cuatro averías cronometradas sobre el clúster |
 | `lab/kind-config.yaml` | Clúster de un nodo con los puertos del Ingress |
 | `lab/manifests/` | Namespace, Secret, Postgres, Redis, API, Ingress y HPA |
 | `lab/README.md` | Índice del lab y arranque rápido |
@@ -22,9 +26,12 @@
 **Instructor**
 
 1. Crea el clúster y aplica los manifiestos antes de clase. El primer `kind create` descarga la imagen del nodo y tarda varios minutos.
-2. Pre-descarga `busybox:1.36` y las imágenes del stack. Si el aula no tiene salida a Internet, guarda también el YAML de `ingress-nginx` y de `metrics-server`.
-3. Ten presente el límite de memoria: un clúster de `kind` con Ingress y métricas pide cerca de 2 GB. En equipos de 8 GB conviene cerrar Docker Desktop y otros contenedores.
-4. La demo de HPA necesita `metrics-server` con `--kubelet-insecure-tls`. Sin ese patch, `kubectl top` devuelve `<unknown>`.
+2. Pre-descarga `busybox:1.36` y las imágenes del stack. Si algún participante no tiene salida a Internet, guarda también el YAML de `ingress-nginx` y de `metrics-server`.
+3. Proyecta `slides.pptx` y sigue `guia-docente.md` para los tiempos, los checkpoints y los planes B.
+4. Ten presente el límite de memoria: un clúster de `kind` con Ingress y métricas pide cerca de 2 GB por participante. En equipos de 8 GB conviene cerrar Docker Desktop y otros contenedores.
+5. La demo de HPA necesita `metrics-server` con `--kubelet-insecure-tls`. Sin ese patch, `kubectl top` devuelve `<unknown>`.
+6. Usa `lab/retos-diagnostico.md` en el bloque de cierre. Si no hay Ingress, cambia el reto 4 por la variante de `targetPort`.
+7. Si el grupo termina antes, `extra-60-min.md` tiene tres bloques de 20 min: HPA con métricas, depuración de pods y rolling update contra Recreate.
 
 **Alumno**
 
@@ -37,12 +44,14 @@
 | Hora | Bloque | Material |
 |---|---|---|
 | 00:00-00:15 | Repaso de la clase 2 y dudas | `docker compose ps`, preguntas del lab 2 |
-| 00:15-01:00 | De Compose a Kubernetes: pods, Deployments, Services, Ingress, probes, requests y limits | `slides.md` |
-| 01:00-01:50 | Lab 3a: crear el clúster, cargar la imagen, desplegar y probar | `lab/guia-paso-a-paso.md` pasos 0-5 |
+| 00:15-00:55 | De Compose a Kubernetes: pods, Deployments, Services, Ingress, probes, requests y limits | `slides.md` |
+| 00:55-01:50 | Lab 3a: crear el clúster, cargar la imagen, desplegar y probar | `lab/guia-paso-a-paso.md` pasos 0-5 |
 | 01:50-02:00 | Pausa | sin material |
-| 02:00-02:45 | Operación: auto-reparación, rolling updates, rollback, readiness frente a liveness | `slides.md` + `demos/` |
-| 02:45-03:40 | Lab 3b: Ingress, actualización sin caída, probe rota y HPA | `lab/guia-paso-a-paso.md` pasos 6-9 |
-| 03:40-04:00 | Cierre y reto: qué cambia entre `docker compose up` y `kubectl apply` | `slides.md` |
+| 02:00-02:40 | Operación: auto-reparación, rolling updates, rollback, readiness frente a liveness | `slides.md` + `demos/` |
+| 02:40-03:15 | Lab 3b: Ingress, actualización sin caída y probe rota | `lab/guia-paso-a-paso.md` pasos 6-8 |
+| 03:15-03:25 | HPA con carga, si el clúster tiene `metrics-server` | `lab/guia-paso-a-paso.md` paso 9 |
+| 03:25-03:50 | Retos de diagnóstico en parejas | `lab/retos-diagnostico.md` |
+| 03:50-04:00 | Entregable y cierre | `evaluacion/rubrica-clase-03.md` |
 
 ## Conceptos clave
 
@@ -98,4 +107,4 @@ kind create cluster --config clase-03/lab/kind-config.yaml --wait 120s
 ss -ltn | grep -E '18020|18443' || echo "puertos libres"
 ```
 
-Un clúster de `kind` por alumno pide 2 GB de RAM cada uno. Con 6 participantes y un solo equipo de aula, mejor un clúster compartido y namespaces por pareja (`tienda-ana`, `tienda-luis`). Los manifiestos usan `tienda`; cambia el namespace o usa `kubectl -n` con el que corresponda.
+Cada participante levanta su clúster de `kind`, que pide cerca de 2 GB de RAM. Si un equipo no llega, comparte el clúster de un compañero con namespaces por pareja (`tienda-ana`, `tienda-luis`). Los manifiestos usan `tienda`; cambia el namespace o usa `kubectl -n` con el que corresponda.

@@ -7,7 +7,11 @@
 | Archivo | Para qué |
 |---|---|
 | `slides.md` | Diapositivas (Marp). Renderizar con `marp slides.md -o slides.pdf` o proyectar el Markdown |
+| `slides.pptx` | Presentación lista para proyectar (exportada de `slides.md`) |
+| `extra-60-min.md` | Tres bloques de 20 min si el grupo termina antes |
+| `guia-docente.md` | Guion de sesión: preparación, tiempos, checkpoints y planes B |
 | `lab/guia-paso-a-paso.md` | Guía del alumno con resultados medidos y diagnóstico |
+| `lab/retos-auditoria.md` | Cuatro comprobaciones de auditoría para el bloque de cierre |
 | `lab/compose.yaml` | Stack con runtime endurecido y red interna |
 | `lab/ci/verificar-imagen.sh` | Gates deterministas de usuario y tamaño |
 | `lab/ci/github-actions-ci.yml` | Workflow de ejemplo para copiar a `.github/workflows/` |
@@ -24,9 +28,12 @@
 **Instructor**
 
 1. Construye la imagen y levanta el stack antes de clase. El primer build tarda menos si `python:3.12-slim` ya está descargada.
-2. Pre-descarga la base de datos de Trivy si vas a escanear en el aula: la primera ejecución tarda varios minutos.
-3. Ten a mano el error de Redis con `cap_drop: ALL`. Es la mejor discusión de la clase: el endurecimiento tiene costes y hay que entender la imagen.
-4. Si el aula no tiene clúster de la clase 3, el paso 6 del lab es opcional. El resto no depende de Kubernetes.
+2. Pre-descarga la base de datos de Trivy si vas a escanear en la sesión: la primera ejecución tarda varios minutos.
+3. Proyecta `slides.pptx` y sigue `guia-docente.md` para los tiempos, los checkpoints y la ruta sin Trivy.
+4. Ten a mano el error de Redis con `cap_drop: ALL`. Es la mejor discusión de la clase: el endurecimiento tiene costes y hay que entender la imagen.
+5. Si el equipo no tiene clúster de la clase 3, el paso 6 del lab es opcional. El resto no depende de Kubernetes.
+6. Usa `lab/retos-auditoria.md` en el bloque de cierre: los cuatro retos son parte del plan. Solo si surge una emergencia de tiempo, haz los retos 1 y 3 y deja el resto para casa.
+7. Si el grupo termina antes, `extra-60-min.md` tiene tres bloques de 20 min: Trivy a fondo, runtime a mano y secretos de build con digest.
 
 **Alumno**
 
@@ -39,12 +46,13 @@
 | Hora | Bloque | Material |
 |---|---|---|
 | 00:00-00:15 | Repaso de la clase 3 y dudas | `kubectl get pods`, preguntas del lab 3 |
-| 00:15-01:00 | Modelo de amenazas: imagen, runtime, secretos, supply chain, privilegios | `slides.md` |
-| 01:00-01:50 | Lab 4a: Dockerfile endurecido, identidad, tamaño, runtime de solo lectura | `lab/guia-paso-a-paso.md` pasos 0-3 |
+| 00:15-00:55 | Modelo de amenazas: imagen, runtime, secretos, supply chain, privilegios | `slides.md` |
+| 00:55-01:50 | Lab 4a: Dockerfile endurecido, identidad, tamaño, runtime de solo lectura | `lab/guia-paso-a-paso.md` pasos 0-3 |
 | 01:50-02:00 | Pausa | sin material |
-| 02:00-02:45 | CVEs, SBOM, firmas, gates deterministas y etapas del pipeline | `slides.md` + `demos/02-escaneo-trivy.sh` |
-| 02:45-03:40 | Lab 4b: gates, escaneo, SBOM, overlay en Kubernetes y GitHub Actions | `lab/guia-paso-a-paso.md` pasos 4-7 |
-| 03:40-04:00 | Cierre del curso: qué se lleva cada rol y qué queda por aprender | `slides.md` |
+| 02:00-02:40 | CVEs, SBOM, firmas, gates deterministas y etapas del pipeline | `slides.md` + `demos/02-escaneo-trivy.sh` |
+| 02:40-03:25 | Lab 4b: gates, escaneo, SBOM, overlay en Kubernetes y GitHub Actions | `lab/guia-paso-a-paso.md` pasos 4-7 |
+| 03:25-03:55 | Retos de auditoría en parejas | `lab/retos-auditoria.md` |
+| 03:55-04:00 | Entregable, cierre del curso y siguientes pasos | `evaluacion/rubrica-clase-04.md` |
 
 ## Conceptos clave
 
@@ -104,4 +112,4 @@ trivy image --download-db-only
 ss -ltn | grep 18030 || echo "18030 libre"
 ```
 
-Si el aula comparte host, asigna a cada alumno un puerto (`18030 + n`) y un nombre de proyecto (`tienda-segura-ana`). En Docker Desktop, cada alumno trabaja en su equipo y el puerto 18030 suele estar libre.
+Cada participante trabaja en su equipo y el puerto 18030 suele estar libre. Si dos personas comparten host, asigna un puerto (`18030 + n`) y un nombre de proyecto (`tienda-segura-ana`).

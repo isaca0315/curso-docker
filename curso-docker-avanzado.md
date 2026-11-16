@@ -2,7 +2,7 @@
 
 **Duración:** 16 h (4 clases de 4 h); el mínimo pedido era 14 h
 **Participantes:** 6
-**Modalidad:** presencial o remota con laboratorio propio
+**Modalidad:** remota; cada participante ejecuta el laboratorio en su equipo y el instructor comparte pantalla.
 **Requisitos:** saber usar la terminal, nociones de Linux (procesos, puertos, permisos) y de Docker básico (`docker run`, `docker ps`, `docker build`)
 
 
@@ -39,22 +39,25 @@ El ciclo de vida completo queda conectado entre clases.
 
 **Entregable:** Dockerfile multi-stage con etapa de test funcionando + informe de 5 líneas con tamaños y tiempos medidos.
 
+**Extra opcional (40 min):** [`clase-01/extra-compose/`](clase-01/extra-compose/README.md). Con la imagen optimizada ya construida, el grupo pasa de un `docker run` largo a un `compose.yaml` con API y proxy, límites y logs. Sirve de puente hacia la clase 2.
+
 
 ## Clase 2: Compose y networking avanzado
 
 **Objetivos:** describir aplicaciones multi-contenedor de forma declarativa y diagnosticar problemas de red, DNS y conectividad entre contenedores.
 
-**Material de la clase:** [`clase-02/`](clase-02/README.md) (guía del instructor, diapositivas, lab, demos y rúbrica).
+**Material de la clase:** [`clase-02/`](clase-02/README.md) (guía del instructor, guion de sesión, diapositivas, lab, retos, demos y rúbrica).
 
 | Hora | Bloque |
 |---|---|
 | 00:00-00:15 | Repaso y dudas de la clase 1 |
-| 00:15-01:00 | **Docker Compose**: servicios, redes, volúmenes, variables de entorno, `env_file`, secrets, `depends_on` + `healthcheck`, profiles, override files, `docker compose watch` |
-| 01:00-01:50 | **Lab 2a**: stack `api + postgres + redis + reverse proxy`; arranque ordenado con healthchecks; separar red `frontend` y `backend`; persistencia con volúmenes; entorno de desarrollo vs producción con override |
+| 00:15-00:55 | **Docker Compose**: servicios, redes, volúmenes, variables de entorno, `env_file`, secrets, `depends_on` + `healthcheck`, profiles, override files, `docker compose watch` |
+| 00:55-01:50 | **Lab 2a**: stack `api + postgres + redis + reverse proxy`; arranque ordenado con healthchecks; separar red `frontend` y `backend`; persistencia con volúmenes |
 | 01:50-02:00 | Pausa |
-| 02:00-02:50 | **Networking avanzado**: bridge por defecto vs user-defined, DNS embebido, `host`, `none`, `macvlan`, `overlay` (concepto y demo), publicación de puertos, MTU, reglas iptables/nftables, troubleshooting con `netshoot` |
-| 02:50-03:50 | **Lab 2b**: verificar aislamiento entre redes; romper el DNS a propósito y diagnosticarlo; capturar tráfico con `netshoot`; exponer un servicio por `macvlan` en la LAN del aula; comparar `host` vs bridge |
-| 03:50-04:00 | Cierre y reto para casa: ¿por qué un contenedor no ve a otro por `localhost`? |
+| 02:00-02:40 | **Networking avanzado**: bridge por defecto vs user-defined, DNS embebido, `host`, `none`, `macvlan`, `overlay` (concepto y demo), publicación de puertos, MTU, reglas iptables/nftables, troubleshooting con `netshoot` |
+| 02:40-03:25 | **Lab 2b**: verificar aislamiento entre redes; romper el DNS a propósito y diagnosticarlo; capturar tráfico con `netshoot`; comparar `host` vs bridge |
+| 03:25-03:50 | **Retos de diagnóstico**: 504 por upstream caído, DNS inexistente, puerto equivocado y secreto viejo; trabajo en parejas |
+| 03:50-04:00 | Entregable y cierre: ¿por qué un contenedor no ve a otro por `localhost`? |
 
 **Entregable:** `compose.yaml` del stack + guía de diagnóstico de red de 10 líneas.
 
@@ -63,19 +66,19 @@ El ciclo de vida completo queda conectado entre clases.
 
 **Objetivos:** reconocer por qué el despliegue manual deja de escalar y operar una aplicación real en Kubernetes: despliegue, auto-reparación, escalado y actualizaciones sin caída.
 
-**Material de la clase:** [`clase-03/`](clase-03/README.md) (guía del instructor, diapositivas, lab, demos y rúbrica).
+**Material de la clase:** [`clase-03/`](clase-03/README.md) (guía del instructor, guion de sesión, diapositivas, lab, retos, demos y rúbrica).
 
 | Hora | Bloque |
 |---|---|
 | 00:00-00:15 | Repaso y dudas de la clase 2 |
-| 00:15-00:45 | **Los desafíos de implementar muchas aplicaciones**: deriva de configuración, secretos dispersos, actualizaciones manuales, descubrimiento de servicios, salud, capacidad, trazabilidad de versiones |
-| 00:45-01:25 | **Orquestación**: qué resuelve y cómo mantiene el control (estado deseado vs real, scheduler, reconciliación, auto-reparación, rolling updates, service discovery). Comparativa Swarm / Kubernetes / Nomad |
-| 01:25-01:35 | Pausa |
-| 01:35-02:15 | **Kubernetes en acción (conceptos)**: cluster, nodo, pod, deployment, service, ingress, configmap, secret, probes, requests/limits, HPA, `kubectl`, Helm a grandes rasgos |
-| 02:15-03:15 | **Lab 3a**: cluster local con `kind`; desplegar `tienda-api` + Postgres con manifiestos; `ConfigMap`/`Secret`; liveness/readiness; Service `ClusterIP` e Ingress |
-| 03:15-03:25 | Pausa |
-| 03:25-03:55 | **Lab 3b**: matar un pod y ver la auto-reparación; escalar réplicas; rolling update con versión nueva y `rollback`; romper una probe y observar el tráfico; HPA con carga sintética |
-| 03:55-04:00 | Cierre: `kompose` como puente Compose → K8s y qué conviene no migrar tal cual |
+| 00:15-00:55 | **De Compose a Kubernetes**: desafíos de muchas aplicaciones, orquestación, estado deseado, pods, Deployments, Services, Ingress, probes, requests/limits y HPA |
+| 00:55-01:50 | **Lab 3a**: clúster local con `kind`; desplegar `tienda-api` + Postgres con manifiestos; `Secret`; liveness/readiness; Service e Ingress; auto-reparación |
+| 01:50-02:00 | Pausa |
+| 02:00-02:40 | **Operación**: rolling update con `maxSurge`/`maxUnavailable`, rollback, readiness frente a liveness, demos |
+| 02:40-03:15 | **Lab 3b**: Ingress por nombre de host, actualización sin caída y probe rota |
+| 03:15-03:25 | **HPA con carga** (si `metrics-server` está disponible) |
+| 03:25-03:50 | **Retos de diagnóstico**: pod `Pending`, Service sin endpoints, secreto viejo y puerto del Ingress; trabajo en parejas |
+| 03:50-04:00 | Entregable y cierre: `kompose` como puente Compose → K8s y qué conviene no migrar tal cual |
 
 **Entregable:** manifiestos YAML aplicados + captura de `kubectl rollout history` y del rollback.
 
@@ -84,17 +87,18 @@ El ciclo de vida completo queda conectado entre clases.
 
 **Objetivos:** endurecer imágenes y contenedores, medir el riesgo con herramientas y automatizar build → escaneo → despliegue dentro de un flujo existente.
 
-**Material de la clase:** [`clase-04/`](clase-04/README.md) (guía del instructor, diapositivas, lab, demos y rúbrica).
+**Material de la clase:** [`clase-04/`](clase-04/README.md) (guía del instructor, guion de sesión, diapositivas, lab, retos, demos y rúbrica).
 
 | Hora | Bloque |
 |---|---|
-| 00:00-00:10 | Repaso y dudas de la clase 3 |
-| 00:10-01:00 | **Seguridad de Docker**: superficie de ataque, imagen base y CVEs, usuario no-root, `cap-drop`, `read-only`, `no-new-privileges`, seccomp/AppArmor, límites de recursos, secretos (nunca en la imagen), riesgo del socket de Docker, rootless, benchmarks con `docker-bench-security` |
-| 01:00-01:45 | **Lab 4a**: imagen endurecida de `tienda-api` (usuario sin shell, sin pip en runtime, non-root); ejecutarla con sistema de solo lectura, `cap-drop` y `no-new-privileges`; comprobar identidad, capacidades, tamaño y redes |
-| 01:45-01:55 | Pausa |
-| 01:55-02:45 | **CI/CD para aplicaciones Docker**: etapas build → test → scan → push → deploy, caché de build, tags inmutables (SHA, semver), entornos y promoción, GitOps, integración en un flujo ya existente (GitHub Actions / GitLab CI / Jenkins / Azure DevOps) |
-| 02:45-03:40 | **Lab 4b**: gates deterministas de usuario y tamaño; Trivy como informe y SBOM; overlay de Kubernetes con `securityContext`; workflow de GitHub Actions con SARIF y publicación por digest |
-| 03:40-04:00 | **Mejores prácticas de contenedores y orquestación** (checklist final), brief del proyecto integrador y cierre del curso |
+| 00:00-00:15 | Repaso y dudas de la clase 3 |
+| 00:15-00:55 | **Seguridad de Docker**: superficie de ataque, imagen base y CVEs, usuario no-root, `cap-drop`, `read-only`, `no-new-privileges`, seccomp/AppArmor, límites de recursos, secretos (nunca en la imagen), riesgo del socket de Docker, rootless, benchmarks con `docker-bench-security` |
+| 00:55-01:50 | **Lab 4a**: imagen endurecida de `tienda-api` (usuario sin shell, sin pip en runtime, non-root); ejecutarla con sistema de solo lectura, `cap-drop` y `no-new-privileges`; comprobar identidad, capacidades, tamaño y redes |
+| 01:50-02:00 | Pausa |
+| 02:00-02:40 | **CI/CD para aplicaciones Docker**: etapas build → test → scan → push → deploy, caché de build, tags inmutables (SHA, semver), entornos y promoción, GitOps, integración en un flujo ya existente (GitHub Actions / GitLab CI / Jenkins / Azure DevOps) |
+| 02:40-03:25 | **Lab 4b**: gates deterministas de usuario y tamaño; Trivy como informe y SBOM; overlay de Kubernetes con `securityContext`; workflow de GitHub Actions con SARIF y publicación por digest |
+| 03:25-03:55 | **Retos de auditoría**: secreto en la imagen, capacidad de más, solo lectura sin `tmpfs` y etiqueta móvil; trabajo en parejas |
+| 03:55-04:00 | Entregable, **mejores prácticas de contenedores y orquestación** (checklist final) y cierre del curso |
 
 **Entregable:** pipeline con gates + checklist de hardening aplicado a la app.
 
@@ -125,8 +129,8 @@ Aprobación: 70 %. Se evalúan el repositorio y la demo; no hay examen teórico.
 ## Infraestructura para 6 personas
 
 - Cada participante: equipo con 8 GB RAM libres, Docker Engine 24+ y `kind` (o Docker Desktop con Kubernetes).
-- Instructor: repo plantilla de `tienda-api`, imágenes pre-descargadas (`postgres`, `redis`, `alpine`, `netshoot`, `trivy`, `kindest/node`) para no depender del ancho de banda del aula.
-- Red del aula con salida a Internet el día 1 (descarga de imágenes) o registro espejo local.
+- Cada participante descarga las imágenes (`postgres`, `redis`, `alpine`, `netshoot`, `trivy`, `kindest/node`) antes de la sesión para no depender de su conexión.
+- Cada participante necesita salida a Internet el día 1 para descargar imágenes, o un registro espejo local.
 - Opcional: un host Linux compartido con Docker para demos de `macvlan` (requiere interfaz en la LAN).
 
 

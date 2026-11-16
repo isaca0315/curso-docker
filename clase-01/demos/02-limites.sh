@@ -18,15 +18,19 @@ cleanup() { docker rm -f "$NAME" "$OOM" "$CPU" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
 echo "== 1. Contenedor con 0,5 CPU y 128 MiB =="
-docker run -d --name "$NAME" --memory 128m --cpus 0.5 -p "$PORT:8000" "$IMG" >/dev/null
+docker run -d --name "$NAME" --memory 128m --memory-reservation 64m \
+  --cpus 0.5 --cpu-shares 512 --pids-limit 100 -p "$PORT:8000" "$IMG" >/dev/null
 sleep 3
 docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}' "$NAME"
 
 echo
 echo "== 2. Los límites se ven en el cgroup v2 =="
-echo -n "memory.max: "; docker exec "$NAME" cat /sys/fs/cgroup/memory.max
-echo -n "cpu.max:    "; docker exec "$NAME" cat /sys/fs/cgroup/cpu.max
+for f in memory.max memory.low cpu.max cpu.weight pids.max; do
+  printf '%-14s' "$f"
+  docker exec "$NAME" cat "/sys/fs/cgroup/$f"
+done
 echo "(cpu.max = cuota periodo; 50000 100000 equivale a medio núcleo)"
+echo "(memory.low es reserva, cpu.weight sale de --cpu-shares y no pone techo)"
 
 echo
 echo "== 3. OOM: 200 MiB en un contenedor limitado a 64 MiB =="

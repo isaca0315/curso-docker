@@ -19,6 +19,7 @@
 | `demos/configuracion-daemon.md` | Inspección del daemon y `daemon.json` comentado (opcional en VM) |
 | `evaluacion/rubrica-clase-01.md` | Rúbrica y checklist del entregable |
 | `recursos/checklist-dockerfile.md` | Chuleta imprimible para el alumno |
+| `extra-compose/` | Extra opcional de 40 min: del `docker run` a un `compose.yaml` con la imagen optimizada |
 
 ## Cómo usar este material
 
@@ -48,9 +49,23 @@
 | 03:15-03:25 | Pausa | sin material |
 | 03:25-04:00 | Reto < 100 MB, variante distroless, puesta en común y cierre | `lab/guia-paso-a-paso.md` pasos 7-8 + `Dockerfile.alpine` + `Dockerfile.distroless` |
 
+## Extra opcional: Compose en 40 min
+
+Al terminar la clase, si quedan 40 minutos o el grupo quiere ver cómo se arranca la imagen sin repetir flags:
+
+| Material | Enlace |
+|---|---|
+| Guía del instructor | [`extra-compose/README.md`](extra-compose/README.md) |
+| Guía paso a paso | [`extra-compose/lab/guia-paso-a-paso.md`](extra-compose/lab/guia-paso-a-paso.md) |
+| Stack de Compose | [`extra-compose/lab/compose.yaml`](extra-compose/lab/compose.yaml) |
+| Diapositivas | [`extra-compose/slides.md`](extra-compose/slides.md) |
+
+Agenda: 8 min de teoría, 25 min de lab y 7 min de reto y cierre. Usa la imagen `tienda-api:optimized` de esta clase. Solo introduce Compose; la clase 2 lo profundiza con base de datos, redes y secretos.
+
 ## Conceptos clave
 
 - **Contenedor ≠ VM.** El kernel es compartido; lo que aísla son namespaces y lo que limita son cgroups.
+- **Límites:** `--memory` y `--cpus` son techos duros (OOM 137 y cuota de CPU). `--memory-reservation`, `--cpu-shares` y `--cpuset-cpus` reservan o reparten; no todos limitan.
 - **Arquitectura real:** `docker` (CLI) → `dockerd` → `containerd` → `runc` → proceso. El shim mantiene vivo el contenedor si el daemon se reinicia.
 - **Capas:** cada instrucción del Dockerfile crea una capa; el contenedor añade una capa de escritura efímera. `docker diff` lo demuestra.
 - **Orden del Dockerfile:** decide qué capas se reutilizan. Dependencias antes que código.
@@ -62,7 +77,7 @@
 ## Guion de demos
 
 1. **Arquitectura** (`demos/01-arquitectura.sh`): mostrar PID del host, shims, namespaces, cgroup y capa de escritura. Preguntar: *¿dónde está el kernel del contenedor?*
-2. **Límites** (`demos/02-limites.sh`): `--cpus 0.5` se refleja en `cpu.max`; `--memory 64m` termina en OOM (exit 137). Preguntar: *¿qué pasa si no pongo límites?*
+2. **Límites** (`demos/02-limites.sh`): `--cpus 0.5` se refleja en `cpu.max`; `--memory 64m` termina en OOM (exit 137); reserva, peso, núcleos y pids en el mismo cgroup. Preguntar: *¿qué pasa si no pongo límites?*
 3. **Capas y caché** (`demos/03-capas-cache.sh`): comparar 1,63 GB con 205 MB; en el reto se añaden alpine (79 MB) y distroless (85 MB). Cambiar el contenido de `app.py` y ver qué pasos se re-ejecutan.
 4. **Daemon** (`demos/configuracion-daemon.md`): inspección en vivo; rotación de logs con flags del CLI. El cambio de `daemon.json` solo se aplica en VM de práctica.
 
@@ -90,7 +105,7 @@
 ## Preparación del aula
 
 ```bash
-# Pre-descargar para no depender del wifi del aula
+# Pre-descargar para no depender de la conexión
 docker pull python:3.12
 docker pull python:3.12-slim
 docker pull python:3.12-alpine
@@ -102,4 +117,4 @@ docker pull gcr.io/distroless/python3-debian12:nonroot
 docker run --rm --memory 64m alpine sh -c 'echo ok'
 ```
 
-Si el aula es remota, cada alumno trabaja en su equipo. Si es un host compartido, asignar un rango de puertos por alumno (`18000 + n`) y un prefijo de nombre de contenedor.
+Cada alumno trabaja en su equipo, así que los nombres y puertos fijos no chocan. Si dos personas comparten host, asignar un rango de puertos por alumno (`18000 + n`) y un prefijo de nombre de contenedor.

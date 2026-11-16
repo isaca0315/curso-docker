@@ -42,4 +42,4 @@ Se eligen al azar; se evalúa la explicación, no la memoria:
 
 ## Nota sobre el alcance
 
-El laboratorio usa un clúster de un solo nodo. No se evalúan alta disponibilidad del control plane, StorageClasses reales ni políticas de red del CNI. Se explican en la puesta en común porque el programa pide conocer el ecosistema, pero un clúster multi-nodo no cabe en 4 horas ni en la memoria de un portátil de aula.
+El laboratorio usa un clúster de un solo nodo. No se evalúan alta disponibilidad del control plane, StorageClasses reales ni políticas de red del CNI. Se explican en la puesta en común porque el programa pide conocer el ecosistema, pero un clúster multi-nodo no cabe en 4 horas ni en la memoria de un portátil.

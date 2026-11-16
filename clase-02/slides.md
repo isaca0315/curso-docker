@@ -3,6 +3,8 @@ marp: true
 theme: default
 paginate: true
 header: "Docker Avanzado · Clase 2"
+style: |
+  section { font-size: 22px; }
 ---
 
 # Docker Avanzado
@@ -45,15 +47,11 @@ Compose guarda ese estado en un archivo versionado.
 # Un `compose.yaml` mínimo
 
 ```yaml
-name: tienda
-
 services:
   api:
     build: ./app
-    ports:
-      - "18010:8000"
-    environment:
-      REDIS_URL: redis://redis:6379/0
+    ports: ["18010:8000"]
+    environment: {REDIS_URL: redis://redis:6379/0}
     depends_on:
       redis:
         condition: service_healthy
@@ -62,7 +60,6 @@ services:
     image: redis:7-alpine
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
 ```
 
 `docker compose up -d` crea servicios, red y volúmenes con el prefijo del proyecto.
@@ -119,6 +116,22 @@ Regla: un healthcheck comprueba el servicio, no solo el proceso. `pg_isready` co
 
 ---
 
+# Qué es una red de Docker
+
+Una red es una red virtual con su propia subred, puerta de enlace y DNS. Docker conecta cada contenedor con una interfaz y le asigna una IP. Dos contenedores se ven solo si comparten al menos una red.
+
+```bash
+docker network create --driver bridge mi-red
+docker network ls
+docker network inspect mi-red
+```
+
+- Driver: `bridge` en un host; `overlay` entre hosts.
+- DNS por nombre: solo en redes user-defined.
+- Alcance: una red de Compose agrupa los servicios del proyecto.
+
+---
+
 # Redes: la default no tiene DNS
 
 | Red | DNS por nombre | Aislamiento |
@@ -150,7 +163,31 @@ El nombre es el servicio o un `alias`. La IP cambia cuando el contenedor se recr
 
 ---
 
-# Aislamiento frontend / backend
+# Separar servicios en redes
+
+```yaml
+services:
+  proxy:
+    networks: [frontend]
+  api:
+    networks: [frontend, backend]
+  db:
+    networks: [backend]
+networks:
+  frontend:
+  backend:
+    internal: true
+```
+
+- `proxy` solo en `frontend`.
+- `api` en `frontend` y `backend`.
+- `db` y `redis` solo en `backend`, que es `internal`.
+
+Cada servicio entra solo en las redes que necesita; la API es el único puente entre la pública y la interna.
+
+---
+
+# El resultado en el stack
 
 ```text
         host :18010
@@ -164,7 +201,7 @@ El nombre es el servicio o un `alias`. La IP cambia cuando el contenedor se recr
 
 - El proxy no alcanza la base.
 - La base no sale a Internet.
-- La API es el único puente entre las dos redes.
+- La API es la única que cruza las dos redes.
 
 ---
 
@@ -189,7 +226,6 @@ services:
     secrets: [db_password]
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/db_password
-
 secrets:
   db_password:
     file: ./secrets/db_password.txt
@@ -318,7 +354,7 @@ La misma imagen sirve para comprobar la red desde fuera de los servicios.
 
 ---
 
-# Lab 2a (50 min)
+# Lab 2a (55 min)
 
 Stack completo con Compose:
 
@@ -333,16 +369,28 @@ Guía: `lab/guia-paso-a-paso.md`
 
 ---
 
-# Lab 2b (60 min)
+# Lab 2b (45 min)
 
 1. Resolver `db` desde `backend` y fallar desde `frontend`
 2. Romper un nombre a propósito y leer el error
 3. Comprobar que `localhost` no cruza contenedores
 4. Capturar tráfico con `netshoot`
 5. Comparar `host` y bridge
-6. `macvlan` en la LAN del aula (opcional)
+6. `macvlan` en la LAN local (opcional)
 
 Entregable: guía de diagnóstico de 10 líneas.
+
+---
+
+# Lab 2c (60 min)
+
+Operación y ciclo de vida:
+
+1. Desarrollo contra producción: override, Adminer y `watch`
+2. Copia de seguridad y restauración de Postgres
+3. Redes a mano con `docker network`
+
+Guía: `lab/lab-2c.md`
 
 ---
 
@@ -375,6 +423,6 @@ Checklist:
 <!--
 Notas para el instructor:
 - No empezar el lab 2b sin haber mostrado el fallo de DNS en vivo.
-- Si el aula no tiene salida a Internet, tener netshoot y las imágenes pre-descargadas.
+- Si falla la conexión, tener netshoot y las imágenes pre-descargadas.
 - Guardar 10 minutos para la puesta en común de la guía de diagnóstico.
 -->

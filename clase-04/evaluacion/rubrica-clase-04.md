@@ -43,4 +43,4 @@ Se eligen al azar; se evalúa la explicación, no la memoria:
 
 ## Nota sobre el alcance
 
-El laboratorio no firma imágenes ni configura políticas de admisión. Se explican en la clase porque completan la cadena de suministro, pero requieren un registry, `cosign` y un clúster con un webhook de admisión. El entregable se centra en lo que se puede construir y verificar en un equipo de aula.
+El laboratorio no firma imágenes ni configura políticas de admisión. Se explican en la clase porque completan la cadena de suministro, pero requieren un registry, `cosign` y un clúster con un webhook de admisión. El entregable se centra en lo que se puede construir y verificar en un equipo.

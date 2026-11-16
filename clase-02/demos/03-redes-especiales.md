@@ -1,6 +1,6 @@
 # Redes especiales: host, none, macvlan y overlay
 
-Comandos para la demo de la clase 2. Los de `macvlan` necesitan un host Linux conectado a la LAN del aula y una interfaz real. Ajusta `eth0`, la subred y la puerta de enlace antes de ejecutarlos.
+Comandos para la demo de la clase 2. Los de `macvlan` necesitan un host Linux conectado a la LAN local y una interfaz real. Ajusta `eth0`, la subred y la puerta de enlace antes de ejecutarlos.
 
 ## `none`: sin red
 

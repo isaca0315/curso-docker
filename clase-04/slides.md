@@ -3,6 +3,8 @@ marp: true
 theme: default
 paginate: true
 header: "Docker Avanzado · Clase 4"
+style: |
+  section { font-size: 22px; }
 ---
 
 # Docker Avanzado
@@ -295,7 +297,7 @@ El overlay de Kustomize aplica esto sobre la API de la clase 3. No hay una segun
 
 ---
 
-# Lab 4a (50 min)
+# Lab 4a (55 min)
 
 1. Crear el secreto y validar Compose
 2. Leer el Dockerfile endurecido y compararlo
@@ -307,7 +309,7 @@ Guía: `lab/guia-paso-a-paso.md`
 
 ---
 
-# Lab 4b (60 min)
+# Lab 4b (45 min)
 
 1. Ejecutar los gates en verde y en rojo
 2. Escanear con Trivy y leer el informe
@@ -350,7 +352,7 @@ Lo que te llevas:
 <!--
 Notas para el instructor:
 - El error de Redis con cap_drop es la discusión central: no copiar seguridad sin probar.
-- Si no hay Trivy, el paso 5 se proyecta y se explica; el resto del lab no depende de él.
+- Si no hay Trivy, el paso 5 se explica con la pantalla compartida; el resto del lab no depende de él.
 - No convertir el escaneo en un gate estricto durante la clase: el ruido de CVEs distrae del método.
 - Guardar 10 minutos para cerrar el curso completo y enlazar con el siguiente nivel.
 -->

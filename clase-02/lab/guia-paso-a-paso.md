@@ -2,7 +2,7 @@
 
 | Dato | Valor |
 |---|---|
-| Duración | 90 min (lab 2a) + 60 min (lab 2b) |
+| Duración | 4 h de clase; 100 min de laboratorio (55 min lab 2a + 45 min lab 2b); el paso 7 queda como extensión de 20 min |
 | Directorio de trabajo | `clase-02/lab` |
 | Imagen de partida | `tienda-api:2.0` (se construye en el paso 2) |
 | Disco libre recomendado | 2 GB |
@@ -192,6 +192,14 @@ curl -s localhost:18010/productos
 
 **Objetivo:** comprobar que Postgres y Redis no son alcanzables desde la red pública.
 
+Una red de Docker es una red virtual con su propia subred, puerta de enlace y DNS. Un contenedor solo ve a otro si comparte red con él. En este stack:
+
+| Servicio | Redes |
+|---|---|
+| `proxy` | `frontend` |
+| `api` | `frontend`, `backend` |
+| `db`, `redis` | `backend` (`internal: true`) |
+
 ```bash
 docker network ls --filter name=tienda
 docker network inspect tienda_backend --format '{{range .Containers}}{{.Name}} {{end}}'
@@ -369,6 +377,8 @@ Adminer está en `backend` para hablar con Postgres y en `frontend` para que Doc
 - [ ] El override publica 18011 y cambia la versión.
 - [ ] `docker compose watch` sincroniza un cambio.
 - [ ] Adminer abre y lista la tabla `productos`.
+
+Si terminas antes, [`lab-2c.md`](lab-2c.md) amplía este paso con copia de seguridad de Postgres y redes a mano.
 
 
 ## Paso 8. Entregable y limpieza
