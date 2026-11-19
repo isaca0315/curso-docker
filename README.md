@@ -1,5 +1,5 @@
 # Curso de Docker Avanzado
-
+#
 Material del curso: 4 clases de 4 horas, 16 h en total, para 6 participantes. Incluye un extra opcional de 40 min de Compose al final de la clase 1. Cada clase tiene una presentación en PowerPoint y una hora de contenido de reserva por si el grupo avanza rápido.
 
 Programa completo: [`curso-docker-avanzado.md`](curso-docker-avanzado.md)
