@@ -1,0 +1,19 @@
+# Dos ConfigMap: uno para variables de entorno y otro para un archivo montado.
+# El mismo objeto se puede leer de las dos formas, pero solo el archivo se
+# actualiza solo cuando cambia el ConfigMap.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-env
+  namespace: tienda
+data:
+  APP_VERSION: "3.0-cm"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-archivo
+  namespace: tienda
+data:
+  saludo.txt: |
+    hola desde un ConfigMap montado

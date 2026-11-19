@@ -1,0 +1,10 @@
+La API quedó como release {{ .Release.Name }} en el namespace {{ .Release.Namespace }}.
+
+Prueba desde dentro del clúster:
+
+  kubectl -n {{ .Release.Namespace }} run prueba-{{ .Release.Name }} --rm -it --restart=Never \
+    --image=busybox:1.36 -- wget -qO- http://{{ .Release.Name }}:{{ .Values.service.port }}/
+
+Para ver el historial:
+
+  helm history {{ .Release.Name }} -n {{ .Release.Namespace }}

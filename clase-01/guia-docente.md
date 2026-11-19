@@ -1,6 +1,10 @@
 # Guía del docente: clase 1
 
-Guion de sesión para las 4 horas. Los tiempos son relativos al inicio (00:00). La guía del alumno es [`lab/guia-paso-a-paso.md`](lab/guia-paso-a-paso.md) y no se proyecta: se sigue en paralelo.
+Guion de sesión para las 4 horas. Los tiempos son relativos al inicio (00:00). La guía del alumno es [`lab/guia-paso-a-paso.md`](lab/guia-paso-a-paso.md) y se sigue en paralelo; el instructor comparte pantalla.
+
+## Modalidad virtual
+
+Cada participante ejecuta los laboratorios en su equipo y sigue la guía en paralelo. Las imágenes base se descargan antes de la sesión en cada equipo para no depender de la conexión durante los builds.
 
 **Material que conviene tener abierto:** [`slides.pptx`](slides.pptx), [`lab/guia-paso-a-paso.md`](lab/guia-paso-a-paso.md), [`evaluacion/rubrica-clase-01.md`](evaluacion/rubrica-clase-01.md) y una copia impresa de [`recursos/checklist-dockerfile.md`](recursos/checklist-dockerfile.md) por participante.
 
@@ -30,7 +34,7 @@ docker pull gcr.io/distroless/python3-debian12:nonroot
 - `docker run --rm hello-world` y `docker info --format '{{.CgroupVersion}}'`. Si dice `1`, los archivos del demo de límites cambian y hay que avisarlo.
 - Comprobar que los puertos 18000, 18001, 18002, 18003, 18090 y 18091 estén libres.
 - Ejecutar una vez los tres demos para confirmar que funcionan en el aula.
-- Si los 6 participantes comparten un host, asignar un rango de puertos por persona (`18000 + 10n`) y un prefijo de nombre. Las guías usan nombres y puertos fijos, así que cada alumno necesita su copia editada. Lo normal es que cada uno trabaje en su equipo.
+- Cada participante trabaja en su equipo, así que los nombres y puertos fijos no chocan. Solo si dos personas comparten host hay que asignar un rango de puertos (`18000 + 10n`) y un prefijo de nombre.
 
 ## Agenda
 
@@ -143,7 +147,7 @@ Todos trabajan desde `clase-01/lab/app`. Circular con esta tabla en la mano.
 | 02:42 | Paso 3, Dockerfile escrito | Tres etapas, `requirements.txt` antes de `COPY . .` |
 | 02:52 | Paso 4, optimizada | 205 MB, `uid=10001(appuser)`, healthcheck `healthy`, test ejecutado |
 | 03:02 | Paso 5, caché | naive reinstala pip, optimizada solo recopia `app.py` |
-| 03:10 | Paso 6, límites | `cpu.max` 50000/100000, OOM con exit 137 |
+| 03:10 | Paso 6, límites | `cpu.max` 50000/100000, `memory.low` 64m, `pids.max` 100, OOM con exit 137 |
 
 Puntos donde se traba la gente:
 
@@ -211,4 +215,5 @@ Avisar que en la clase 2 se reutiliza `lab/app`: no borrar el directorio, solo l
 
 - Revisar que los entregables incluyan mediciones reales y no solo el Dockerfile.
 - Anotar quién quedó atrasado para el repaso de la clase 2.
+- Si sobraron 40 minutos o el grupo pidió ver cómo se arranca la imagen sin flags, usar `extra-compose/`: deja el stack `api + proxy` sano y sirve de puente a la clase 2.
 - Si cambiaste algo del material, actualizar `slides.md` y volver a exportar `slides.pptx`.

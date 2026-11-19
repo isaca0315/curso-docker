@@ -1,0 +1,37 @@
+# CronJob suspendido: no se ejecuta solo, pero conserva la plantilla.
+# Se lanza a mano con: kubectl create job --from=cronjob/reporte-cada-minuto
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: reporte-cada-minuto
+  namespace: tienda
+spec:
+  schedule: "*/1 * * * *"
+  suspend: true
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: psql
+              image: postgres:16-alpine
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-credentials
+                      key: password
+              command: ["sh", "-c"]
+              args:
+                - psql -h db -U tienda -d tienda -tAc "select now(), (select count(*) from productos);"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 128Mi

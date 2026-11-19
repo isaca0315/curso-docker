@@ -55,6 +55,14 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 5
             failureThreshold: 3
+          # La API puede tardar hasta 60 s en escuchar si la base no responde.
+          # El startupProbe impide que la liveness la reinicie en ese arranque.
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /healthz

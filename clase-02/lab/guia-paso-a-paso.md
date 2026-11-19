@@ -134,7 +134,7 @@ docker compose logs --tail 20 api
 docker compose top
 ```
 
-**Esperado:** `db`, `redis` y `api` en `healthy`; el proxy en `healthy` tras unos segundos. En los logs de la API aparecen dos workers de gunicorn escuchando en `0.0.0.0:8000`.
+**Esperado:** `db`, `redis` y `api` en `healthy`; el proxy en `healthy` tras unos segundos. En los logs de la API aparece gunicorn escuchando en `0.0.0.0:8000`: un worker con el override de desarrollo y dos en el modo base.
 
 Si algún servicio queda en `unhealthy`, los logs dicen por qué. `docker compose ps -a` incluye los contenedores parados.
 
@@ -309,7 +309,7 @@ Para diagnosticar un fallo real, este orden funciona:
 docker volume ls --filter name=tienda
 docker compose exec -T redis redis-cli incr visitas
 docker compose down
-docker compose up -d
+docker compose up -d --wait
 curl -s localhost:18010/visitas
 ```
 
@@ -319,7 +319,7 @@ Ahora borra también los volúmenes:
 
 ```bash
 docker compose down -v
-docker compose up -d
+docker compose up -d --wait
 curl -s localhost:18010/productos
 ```
 

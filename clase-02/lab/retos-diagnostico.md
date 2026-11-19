@@ -87,7 +87,7 @@ Puede decir `Name or service not known` según el sistema. El segundo devuelve `
 **Arreglo:** vuelve al compose normal y recrea API y proxy para que Nginx apunte a la IP nueva:
 
 ```bash
-docker compose up -d --force-recreate api proxy
+docker compose up -d --wait --force-recreate api proxy
 curl -s localhost:18010/readyz
 ```
 
@@ -155,7 +155,7 @@ password authentication failed for user "tienda"
 
 ```bash
 cp /tmp/db_password.bak secrets/db_password.txt
-docker compose up -d --force-recreate api
+docker compose up -d --wait --force-recreate api
 curl -s localhost:18010/
 ```
 
@@ -163,6 +163,14 @@ curl -s localhost:18010/
 
 ```bash
 printf 'clave-nueva\n' > secrets/db_password.txt
+docker compose down -v
+docker compose up -d --wait
+```
+
+La base queda inicializada con `clave-nueva`. Para volver al secreto original, restaura el archivo y reinicializa otra vez con `down -v`:
+
+```bash
+cp /tmp/db_password.bak secrets/db_password.txt
 docker compose down -v
 docker compose up -d --wait
 ```

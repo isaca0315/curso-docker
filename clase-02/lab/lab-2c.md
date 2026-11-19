@@ -1,6 +1,6 @@
 # Lab 2c: operación del stack
 
-**Duración:** 60 min · **Requisitos:** stack de `clase-02/lab` arriba y sano (`docker compose up -d --wait`) · **Material:** [`../extra-60-min.md`](../extra-60-min.md) para el instructor
+**Duración:** 60 min · **Requisitos:** stack de `clase-02/lab` arriba y sano (`docker compose up -d --wait`)
 
 Tres partes independientes: 20, 15 y 20 min. Si solo hay 20 min, haz la parte 1. Al terminar, el stack queda como estaba; las respuestas van al final de la guía de diagnóstico.
 
@@ -86,7 +86,7 @@ docker compose exec -T db psql -U tienda -d tienda -c 'delete from productos;'
 curl -s localhost:18010/productos
 ```
 
-**Esperado:** `{"productos": []}`.
+**Esperado:** `{"productos":[]}`.
 
 Restaura:
 

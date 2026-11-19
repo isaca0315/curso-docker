@@ -8,7 +8,7 @@
 |---|---|
 | `slides.md` | Diapositivas (Marp). Renderizar con `marp slides.md -o slides.pdf` o proyectar el Markdown |
 | `slides.pptx` | Presentación lista para proyectar (exportada de `slides.md`) |
-| `extra-60-min.md` | Tres bloques de 20 min si el grupo termina antes |
+| `extra-60-min.md` | Reserva: DNS a fondo, tcpdump y anclas YAML (3 bloques de 20 min) |
 | `guia-docente.md` | Guion de sesión: preparación, tiempos, checkpoints y planes de contingencia |
 | `lab/guia-paso-a-paso.md` | Guía del alumno con resultados esperados y diagnóstico |
 | `lab/lab-2c.md` | Lab opcional de 60 min: override, copia de seguridad y redes a mano |
@@ -32,7 +32,7 @@
 3. Proyecta `slides.pptx` y sigue `guia-docente.md` para los tiempos, los checkpoints y los planes B.
 4. Ten a mano la guía de diagnóstico: es el entregable principal de la clase.
 5. Usa `lab/retos-diagnostico.md` en el bloque de cierre: los cuatro retos son parte del plan. Solo si surge una emergencia de tiempo, haz los retos 1 y 3 y deja el resto para casa.
-6. Si el grupo termina antes, `lab/lab-2c.md` agrupa el contenido de los tres bloques de reserva en un laboratorio de 60 min. La versión corta para el instructor está en `extra-60-min.md`.
+6. Si el grupo termina antes, `lab/lab-2c.md` tiene un laboratorio de 60 min de operación del stack y `extra-60-min.md` tres bloques de temas nuevos: DNS, tcpdump y anclas YAML.
 7. La demo de `macvlan` solo funciona en un host Linux con interfaz en la LAN. Si los participantes usan laptops, explícala con la pantalla compartida; no la asignes como obligatoria.
 
 **Alumno**

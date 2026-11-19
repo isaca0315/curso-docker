@@ -45,6 +45,10 @@ La misma aplicación, `tienda-api`, recorre las cuatro clases: se construye, se 
 | Guía del instructor | [`clase-03/README.md`](clase-03/README.md) |
 | Guion de sesión del docente | [`clase-03/guia-docente.md`](clase-03/guia-docente.md) |
 | Hora extra (3 bloques de 20 min) | [`clase-03/extra-60-min.md`](clase-03/extra-60-min.md) |
+| Plan de día completo (8 h) | [`clase-03/plan-8h.md`](clase-03/plan-8h.md) |
+| Laboratorio extra (60 min) | [`clase-03/lab/lab-3c.md`](clase-03/lab/lab-3c.md) |
+| Laboratorio de Helm (60 min) | [`clase-03/lab/lab-3d.md`](clase-03/lab/lab-3d.md) |
+| Laboratorio de StatefulSet (60 min) | [`clase-03/lab/lab-3e.md`](clase-03/lab/lab-3e.md) |
 | Retos de diagnóstico | [`clase-03/lab/retos-diagnostico.md`](clase-03/lab/retos-diagnostico.md) |
 | Rúbrica del entregable | [`clase-03/evaluacion/rubrica-clase-03.md`](clase-03/evaluacion/rubrica-clase-03.md) |
 | Checklist de Kubernetes | [`clase-03/recursos/checklist-kubernetes.md`](clase-03/recursos/checklist-kubernetes.md) |
@@ -74,7 +78,8 @@ La misma aplicación, `tienda-api`, recorre las cuatro clases: se construye, se 
 - Terminal en Linux, macOS o WSL2. En Windows, PowerShell también sirve: la guía de la clase 1 incluye un apéndice con las diferencias.
 - 10 GB de disco libre para las cuatro clases.
 - `kind` 0.24 o superior y `kubectl` 1.31 o superior para la clase 3.
-- 4 GB de RAM libres para el clúster local. Con Docker Desktop, ajusta la memoria de la VM.
+- Helm 3.16 o superior solo para el plan de 8 horas de la clase 3.
+- 8 GB de RAM en el equipo, con 2 GB libres para el clúster local. Con Docker Desktop, ajusta la memoria de la VM y sigue [`modo-bajo-consumo.md`](modo-bajo-consumo.md) si el mismo equipo hace la videollamada.
 - Git para clonar el repositorio.
 
 Trivy es opcional para la clase 4: el laboratorio funciona sin él y el escaneo se explica como informe.
@@ -110,7 +115,7 @@ curso-docker/
 │   └── recursos/
 ├── clase-03/
 │   ├── lab/                      # kind, manifiestos, guía
-│   ├── demos/                    # auto-reparación, rollback, probe rota
+│   ├── demos/                    # auto-reparación, rollback, probes, workloads
 │   ├── evaluacion/
 │   └── recursos/
 └── clase-04/

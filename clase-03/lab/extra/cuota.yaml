@@ -1,0 +1,31 @@
+# LimitRange pone máximos, requests y limits por defecto a los contenedores que
+# no los declaran. ResourceQuota limita el total del namespace.
+# La cuota deja 1 pod libre sobre el stack base con la API en una réplica.
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: tienda-limits
+  namespace: tienda
+spec:
+  limits:
+    - type: Container
+      max:
+        cpu: 500m
+        memory: 512Mi
+      default:
+        cpu: 200m
+        memory: 128Mi
+      defaultRequest:
+        cpu: 50m
+        memory: 64Mi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tienda-quota
+  namespace: tienda
+spec:
+  hard:
+    requests.cpu: "500m"
+    requests.memory: 512Mi
+    pods: "4"

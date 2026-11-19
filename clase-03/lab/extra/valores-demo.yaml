@@ -1,0 +1,11 @@
+# Valores para un upgrade con archivo en vez de --set.
+# Cambia réplicas, versión y límites de CPU.
+replicaCount: 2
+appVersion: "3.2"
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi

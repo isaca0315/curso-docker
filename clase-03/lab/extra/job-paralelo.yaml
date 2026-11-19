@@ -1,0 +1,26 @@
+# Job con 4 ejecuciones y 2 en paralelo. Se ven dos pods a la vez y luego
+# los otros dos. ttlSecondsAfterFinished borra los pods cinco minutos después.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: paralelo
+  namespace: tienda
+spec:
+  completions: 4
+  parallelism: 2
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: tarea
+          image: busybox:1.36
+          command: ["sh", "-c", "echo tarea en $(hostname); sleep 5"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

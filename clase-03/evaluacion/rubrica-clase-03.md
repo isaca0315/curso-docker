@@ -9,7 +9,7 @@
 | Despliegue | 25 | Los cuatro pods `1/1`, PVC `Bound` y API en dos réplicas | Arranca con algún reintento | Falta un componente o hay que arreglarlo a mano | No arranca |
 | Objetos y labels | 15 | Deployment, Service y selector coherentes; nombres claros | Correctos con algún detalle redundante | Service sin endpoints o selector roto | Objetos sueltos sin relación |
 | Probes y recursos | 20 | Readiness y liveness con rutas distintas, requests y limits razonables | Probes presentes pero iguales o sin recursos | Solo una probe o sin recursos | Sin probes |
-| Actualización y rollback | 20 | Rolling update con `maxUnavailable: 0` y `rollout undo` documentado | Actualiza y vuelve atrás con ayuda | Rollback falla o hay caída | No demuestra actualización |
+| Actualización y rollback | 20 | Rolling update con `maxUnavailable: 0`, `pause` y `undo` o `--to-revision` documentados | Actualiza y vuelve atrás con ayuda | Rollback falla o hay caída | No demuestra actualización |
 | Ingress o acceso | 10 | Ingress por host o port-forward explicado; distingue 404 de 503 | Acceso funciona con pasos manuales | Acceso inestable | No accede |
 | Explicación oral | 10 | Explica auto-reparación, Service y diferencia liveness/readiness | Responde con ayuda | Confunde Service con Ingress | No puede explicarlo |
 
@@ -21,9 +21,9 @@
 - [ ] `kubectl get endpoints api -n tienda` tiene dos IPs.
 - [ ] `curl` a la API responde `{"db":"ok","redis":"ok"}`.
 - [ ] `kubectl rollout history deployment/api -n tienda` tiene más de una revisión.
-- [ ] `kubectl rollout undo` devuelve la versión anterior.
+- [ ] `kubectl rollout undo` devuelve la versión anterior y `--to-revision=1` vuelve a la imagen original.
 - [ ] Una prueba de readiness rota deja los pods `0/1` sin reiniciarlos.
-- [ ] `kubectl get hpa -n tienda` muestra métricas o se explica por qué no hay `metrics-server`.
+- [ ] Tienes la captura del HPA con uso y réplicas, o explicas por qué no hay `metrics-server`.
 
 ## Preguntas de la demo (3 min por alumno)
 
@@ -34,7 +34,7 @@ Se eligen al azar; se evalúa la explicación, no la memoria:
 3. ¿Qué pasa si un Service no tiene endpoints?
 4. ¿Por qué la API no debería usar `/readyz` como liveness?
 5. ¿Qué garantiza `maxUnavailable: 0` durante un rollout?
-6. ¿Qué hace `kubectl rollout undo` y de dónde saca la revisión anterior?
+6. ¿Qué hace `kubectl rollout undo`, de dónde saca la revisión anterior y en qué se diferencia de `--to-revision`?
 7. ¿Qué diferencia hay entre un Ingress y un Service?
 8. ¿Sobre qué valor calcula el HPA el porcentaje de CPU?
 9. ¿Por qué `kind load docker-image` es necesario si la imagen ya está en Docker?
@@ -43,3 +43,12 @@ Se eligen al azar; se evalúa la explicación, no la memoria:
 ## Nota sobre el alcance
 
 El laboratorio usa un clúster de un solo nodo. No se evalúan alta disponibilidad del control plane, StorageClasses reales ni políticas de red del CNI. Se explican en la puesta en común porque el programa pide conocer el ecosistema, pero un clúster multi-nodo no cabe en 4 horas ni en la memoria de un portátil.
+
+## Versión de 8 horas
+
+La rúbrica mantiene los mismos criterios y pesos. Para el día completo se suman como evidencia, sin cambiar la nota base, estos cuatro puntos:
+
+- Chart validado con `helm lint` y `helm template`.
+- `helm history` con dos revisiones y un rollback correcto.
+- `kubectl -n stateful get pods,pvc` antes y después de borrar `db-0`.
+- Explicación de por qué escalar un StatefulSet no replica los datos.

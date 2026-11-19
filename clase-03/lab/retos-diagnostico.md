@@ -1,10 +1,10 @@
 # Retos de diagnóstico: clase 3
 
-Cuatro averías sobre el clúster de `kind` y los manifiestos de `clase-03/lab`. Se resuelven en parejas y se deshacen al final.
+Seis averías sobre el clúster de `kind` y los manifiestos de `clase-03/lab`. Se resuelven en parejas y se deshacen al final.
 
 | Dato | Valor |
 |---|---|
-| Duración | 25 min |
+| Duración | 35 min |
 | Directorio | `clase-03/lab` |
 | Requisito | Clúster `curso` con el namespace `tienda` aplicado y la API en 2 réplicas |
 | Formato | Parejas: una persona ejecuta, la otra lee `describe` y decide |
@@ -22,10 +22,11 @@ Cuatro averías sobre el clúster de `kind` y los manifiestos de `clase-03/lab`.
 
 ```bash
 kubectl -n tienda patch deployment api --type=json \
-  -p='[{"op":"replace","path":"/spec/template/spec/containers/0/resources/requests/cpu","value":"64"}]'
+  -p='[{"op":"replace","path":"/spec/template/spec/containers/0/resources/requests/cpu","value":"64"},{"op":"replace","path":"/spec/template/spec/containers/0/resources/limits/cpu","value":"64"}]'
 
 kubectl -n tienda get pods -l app=api
-kubectl -n tienda describe pod -l app=api | sed -n '/Events:/,$p'
+POD=$(kubectl -n tienda get pods -l app=api --field-selector=status.phase=Pending -o jsonpath='{.items[0].metadata.name}')
+kubectl -n tienda describe pod "$POD" | sed -n '/Events:/,$p'
 ```
 
 **Esperado:** aparece un pod nuevo en `Pending`; los dos anteriores siguen `1/1`. En los eventos:
@@ -53,6 +54,7 @@ kubectl -n tienda rollout status deployment/api --timeout=120s
 kubectl -n tienda patch service api \
   -p '{"spec":{"selector":{"app":"api-v2"}}}'
 
+sleep 5
 kubectl -n tienda get endpoints api
 kubectl -n tienda get pods --show-labels
 curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: tienda.local' localhost:18020/
@@ -66,6 +68,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: tienda.local' localhost:18020
 
 ```bash
 kubectl -n tienda patch service api -p '{"spec":{"selector":{"app":"api"}}}'
+sleep 5
 kubectl -n tienda get endpoints api
 ```
 
@@ -85,7 +88,7 @@ kubectl -n tienda rollout status deployment/api --timeout=90s || echo "rollout d
 kubectl -n tienda get pods -l app=api
 ```
 
-**Esperado:** el rollout no termina. Hay un pod nuevo `0/1 Running` y los dos anteriores siguen `1/1` sirviendo tráfico. En `describe` del pod nuevo aparece la readiness fallando con 503. La API tarda cerca de 60 segundos en empezar a escuchar porque reintenta la conexión antes de arrancar; por eso la espera es de 90 segundos.
+**Esperado:** el rollout no termina. Hay un pod nuevo `0/1 Running` con cero reinicios y los dos anteriores siguen `1/1` sirviendo tráfico. En `describe` del pod nuevo aparece la readiness fallando con 503. La API tarda cerca de 60 segundos en empezar a escuchar porque reintenta la conexión antes de arrancar; por eso la espera es de 90 segundos. El `startupProbe` cubre ese arranque lento y evita que la liveness reinicie el pod mientras tanto.
 
 El error exacto se ve dentro del pod nuevo:
 
@@ -100,7 +103,7 @@ kubectl -n tienda exec "$pod" -- python -c \
 
 **Esperado:** `password authentication failed for user "tienda"`.
 
-**Diagnóstico:** Postgres ya estaba inicializado con la contraseña anterior. El secreto nuevo solo cambia lo que envía la API; la base sigue con la clave vieja. La readiness usa `/readyz`, que comprueba la conexión, así que el pod nuevo nunca entra en el Service. La liveness usa `/healthz`, que responde aunque la base falle, por eso el pod no se reinicia.
+**Diagnóstico:** Postgres ya estaba inicializado con la contraseña anterior. El secreto nuevo solo cambia lo que envía la API; la base sigue con la clave vieja. La readiness usa `/readyz`, que comprueba la conexión, así que el pod nuevo nunca entra en el Service. La liveness usa `/healthz`, que responde aunque la base falle; el `startupProbe` retrasa la liveness hasta que gunicorn escucha, por eso el pod se queda en `0/1` sin reiniciarse.
 
 **Arreglo:** vuelve a aplicar el secreto original y reinicia el despliegue. No hace falta tocar la base.
 
@@ -120,6 +123,7 @@ kubectl -n tienda rollout status deployment/api --timeout=180s
 kubectl -n tienda patch ingress api --type=json \
   -p='[{"op":"replace","path":"/spec/rules/0/http/paths/0/backend/service/port/name","value":"web"}]'
 
+sleep 5
 kubectl -n tienda describe ingress api | tail -15
 kubectl -n tienda get svc api -o jsonpath='{.spec.ports[*].name}{"\n"}'
 curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: tienda.local' localhost:18020/
@@ -140,6 +144,59 @@ kubectl -n tienda patch ingress api --type=json \
 
 Si el clúster no tiene Ingress, cambia este reto por uno de `targetPort`: apunta el Service a `targetPort: web` y comprueba que el port-forward falla aunque los endpoints existan. El diagnóstico es el mismo: el nombre del puerto no coincide.
 
+## Reto 5. El pod se reinicia sin parar (5 min)
+
+**Síntoma:** el rollout no avanza y el pod nuevo cambia de estado cada pocos segundos.
+
+```bash
+kubectl -n tienda patch deployment api --type=json \
+  -p='[{"op":"replace","path":"/spec/template/spec/containers/0/resources/limits/memory","value":"16Mi"},{"op":"replace","path":"/spec/template/spec/containers/0/resources/requests/memory","value":"16Mi"}]'
+sleep 25
+kubectl -n tienda get pods -l app=api
+pod=$(kubectl -n tienda get pods -l app=api --sort-by=.metadata.creationTimestamp \
+  -o jsonpath='{.items[*].metadata.name}' | awk '{print $NF}')
+kubectl -n tienda describe pod "$pod" | grep -A3 'Last State'
+```
+
+**Esperado:** el pod nuevo está en `CrashLoopBackOff`, con `RESTARTS` mayor que cero, y `Last State` dice `Terminated`, `Reason: OOMKilled`, `Exit Code: 137`. Los dos pods anteriores siguen `1/1`.
+
+**Diagnóstico:** el límite de memoria es más chico de lo que ocupa el proceso. El kernel lo mata y el kubelet lo reinicia con espera creciente. No es un error de la aplicación ni de la imagen: `OOMKilled` y el código 137 lo confirman. Bajar un límite sin medir el consumo es una forma habitual de romper un despliegue.
+
+**Arreglo:**
+
+```bash
+kubectl -n tienda rollout undo deployment/api
+kubectl -n tienda rollout status deployment/api --timeout=180s
+```
+
+**Comprobación:** los pods vuelven a `1/1` y dejan de aparecer reinicios nuevos.
+
+## Reto 6. La imagen no existe (5 min)
+
+**Síntoma:** el pod nuevo no arranca y el rollout no avanza, pero la versión vieja sigue respondiendo.
+
+```bash
+kubectl -n tienda set image deployment/api api=tienda-api:9.9
+sleep 10
+kubectl -n tienda get pods -l app=api
+pod=$(kubectl -n tienda get pods -l app=api --sort-by=.metadata.creationTimestamp \
+  -o jsonpath='{.items[*].metadata.name}' | awk '{print $NF}')
+kubectl -n tienda describe pod "$pod" | sed -n '/Events:/,$p' | tail -5
+```
+
+**Esperado:** `ErrImagePull` o `ImagePullBackOff` en el pod nuevo y eventos `Failed to pull image "tienda-api:9.9"`. Los pods anteriores siguen `1/1` y sirviendo.
+
+**Diagnóstico:** el tag no está en el nodo ni en un registry. `ImagePullBackOff` es un problema de imagen; `Pending` es de recursos y `CrashLoopBackOff` es del proceso. Se distinguen leyendo el estado y los eventos, sin reiniciar nada.
+
+**Arreglo:**
+
+```bash
+kubectl -n tienda rollout undo deployment/api
+kubectl -n tienda rollout status deployment/api --timeout=180s
+```
+
+**Comprobación:** los pods vuelven a `1/1` y el rollout termina.
+
 ## Restaurar el entorno
 
 ```bash
@@ -147,8 +204,11 @@ kubectl apply -f manifests/01-secret.yaml
 kubectl -n tienda rollout restart deployment/api
 kubectl -n tienda rollout status deployment/api --timeout=180s
 kubectl -n tienda get pods,svc,endpoints
+kubectl -n tienda get deploy api -o jsonpath='{.spec.template.spec.containers[0].resources}{"\n"}'
 curl -s -H 'Host: tienda.local' localhost:18020/healthz
 ```
+
+**Esperado:** dos pods `1/1`, el mismo ClusterIP y los recursos originales (`cpu: 250m`, `memory: 256Mi` de límite). Los retos 1, 5 y 6 ya se revirtieron con `rollout undo`.
 
 Si el reto 1 dejó una revisión mala en el historial, `rollout undo` ya la revirtió. No borres el clúster: la clase 4 reutiliza los manifiestos y el overlay.
 
@@ -156,6 +216,7 @@ Si el reto 1 dejó una revisión mala en el historial, `rollout undo` ya la revi
 
 - [ ] Distingo `Pending` de `ImagePullBackOff` y de `CrashLoopBackOff`.
 - [ ] Sé leer los eventos de `describe pod`.
+- [ ] Reconozco `OOMKilled` y el código 137.
 - [ ] Sé comprobar endpoints antes de culpar al Ingress.
 - [ ] Entiendo por qué un pod puede estar `Running` y `0/1` a la vez.
 - [ ] Sé qué probe reinicia y cuál solo saca del tráfico.

@@ -38,9 +38,11 @@
 - [ ] Borrar un pod de la API produce otro.
 - [ ] `kubectl scale` cambia pods y endpoints.
 - [ ] `kubectl rollout history` muestra las revisiones.
-- [ ] `kubectl rollout undo` vuelve a la anterior.
+- [ ] `kubectl rollout undo` vuelve a la anterior y `--to-revision=1` a una concreta.
+- [ ] Un Deployment en pausa guarda el cambio y no crea pods hasta `resume`.
 - [ ] Una readiness rota deja pods `0/1` fuera de los endpoints.
 - [ ] Sabes leer `kubectl describe pod` y `kubectl get events`.
+- [ ] Distingues `Pending`, `ImagePullBackOff`, `OOMKilled` y `CrashLoopBackOff`.
 
 ## Acceso
 
@@ -55,3 +57,14 @@
 - [ ] El HPA muestra el objetivo y el uso actual.
 - [ ] Bajo carga, el número de réplicas sube.
 - [ ] Al quitar la carga, baja tras la ventana de estabilización.
+
+## Extensión de 8 horas (opcional)
+
+- [ ] La versión de la API sale de un ConfigMap y cambia al reiniciar el Deployment.
+- [ ] Un archivo montado desde un ConfigMap se actualiza sin reiniciar el pod.
+- [ ] Un Job termina en `Complete` y un CronJob suspendido se lanza a mano.
+- [ ] La cuota rechaza pods con `exceeded quota` antes de crearlos.
+- [ ] `helm lint` y `helm template` funcionan sobre `lab/helm/tienda`.
+- [ ] `helm history` muestra dos revisiones y el rollback vuelve a la anterior.
+- [ ] `db-0` conserva los datos después de borrar el pod.
+- [ ] `db-0` y `db-1` tienen PVC distintos y no comparten datos.

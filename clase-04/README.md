@@ -28,7 +28,7 @@
 **Instructor**
 
 1. Construye la imagen y levanta el stack antes de clase. El primer build tarda menos si `python:3.12-slim` ya está descargada.
-2. Pre-descarga la base de datos de Trivy si vas a escanear en la sesión: la primera ejecución tarda varios minutos.
+2. Pre-descarga la base de datos de Trivy si vas a escanear en la sesión: la primera ejecución tarda varios minutos. Si el equipo que proyecta también corre el clúster, revisa [`../modo-bajo-consumo.md`](../modo-bajo-consumo.md): el bloque de Kustomize es el único que necesita el clúster encendido.
 3. Proyecta `slides.pptx` y sigue `guia-docente.md` para los tiempos, los checkpoints y la ruta sin Trivy.
 4. Ten a mano el error de Redis con `cap_drop: ALL`. Es la mejor discusión de la clase: el endurecimiento tiene costes y hay que entender la imagen.
 5. Si el equipo no tiene clúster de la clase 3, el paso 6 del lab es opcional. El resto no depende de Kubernetes.

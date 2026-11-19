@@ -66,7 +66,7 @@ El ciclo de vida completo queda conectado entre clases.
 
 **Objetivos:** reconocer por qué el despliegue manual deja de escalar y operar una aplicación real en Kubernetes: despliegue, auto-reparación, escalado y actualizaciones sin caída.
 
-**Material de la clase:** [`clase-03/`](clase-03/README.md) (guía del instructor, guion de sesión, diapositivas, lab, retos, demos y rúbrica).
+**Material de la clase:** [`clase-03/`](clase-03/README.md) (guía del instructor, guion de sesión, diapositivas, lab, retos, demos y rúbrica). Para un día completo: [`clase-03/plan-8h.md`](clase-03/plan-8h.md).
 
 | Hora | Bloque |
 |---|---|
