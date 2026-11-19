@@ -1,21 +1,36 @@
-# Informes guardados
+# Informes de respaldo
 
-Carpeta para la salida de Trivy y el SBOM que se comparten si falla la conexión o Trivy no está disponible.
+Aquí se guarda la evidencia cuando Trivy no está disponible o la descarga de la base falla durante la clase. El laboratorio no depende de estos archivos: con Trivy instalado, genera el informe y el SBOM en local.
 
-El día anterior, con Trivy instalado y la imagen construida:
+## Informe de escaneo de referencia
 
-```bash
-cd clase-04/lab
-trivy image --format table -o informes/trivy-tienda-api-4.0.txt tienda-api:4.0
-trivy image --format cyclonedx -o informes/sbom-tienda-api-4.0.cdx.json tienda-api:4.0
+Imagen: `tienda-api:4.0`, construida desde `clase-02/lab/app/Dockerfile.hardened` con base `python:3.12-slim`.
+
+```text
+python:3.12-slim (Debian bookworm)
+CRITICAL: 0 con corrección disponible
+HIGH:     2 en zlib1g, ambas con versión corregida en la base Debian
 ```
 
-Si Trivy no está instalado, sirve la imagen oficial:
+Los números son de la fecha en que se preparó el material. Un escaneo posterior puede dar otro resultado sin que el equipo haya cambiado la imagen. Por eso el gate principal del pipeline es el usuario y el tamaño, no la lista de CVEs del día.
+
+Cómo leer el resultado:
+
+- CVE en `debian`: se corrige actualizando la imagen base y reconstruyendo.
+- CVE en `python-pkg`: se corrige subiendo la versión en `requirements.txt`.
+- CVE `unfixed`: no se arregla con un rebuild. Se mitiga con runtime endurecido y red restringida, o se acepta por escrito con fecha y responsable.
+
+## SBOM de referencia
+
+El SBOM se genera en CycloneDX con:
 
 ```bash
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-  -v "$PWD/informes:/informes" aquasec/trivy:latest image \
-  --format table -o /informes/trivy-tienda-api-4.0.txt tienda-api:4.0
+trivy image --format cyclonedx --output /tmp/tienda-api-sbom.json tienda-api:4.0
+du -h /tmp/tienda-api-sbom.json
 ```
 
-Los informes llevan la fecha del escaneo. No los uses como prueba de que la imagen sigue limpia: vuelve a escanear cuando cambie la base o las dependencias.
+Tamaño esperado: unos 200 KB. Contiene las dependencias del sistema y de Python con sus versiones. No se guarda aquí porque cambia con cada reconstrucción de la base.
+
+## Plantilla del acta
+
+[`acta-ejemplo.md`](acta-ejemplo.md) es la plantilla del entregable. Cada pareja la copia a `acta.md` y la rellena con sus propias salidas.

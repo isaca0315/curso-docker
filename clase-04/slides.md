@@ -9,64 +9,88 @@ style: |
 
 # Docker Avanzado
 
-## Clase 4: seguridad de la imagen y pipeline de CI/CD
+## Clase 4: caso de estudio, auditoría de `tienda-api` 4.0
 
-4 horas · 6 participantes · `tienda-api` endurecida y automatizada
+4 horas · 6 participantes · Docker y Compose, sin Kubernetes
 
 ---
 
-# Contenido
+# El caso
 
-1. Qué superficie de ataque tiene un contenedor
-2. Endurecer la imagen y el runtime
-3. CVEs, SBOM y gates que no se rompen solos
-4. Un pipeline de build, escaneo y publicación
-5. Lab: de la imagen de la clase 2 a una con gates
+El lanzamiento de `tienda-api` 4.0 está previsto para hoy a las 16:00. El viernes llegó un informe del auditor con cuatro hallazgos.
 
-**Hilo del curso:** la app se construyó, se compuso, se orquestó. Hoy se asegura y se automatiza.
+Trabajas en parejas. Eres el equipo de plataforma. Al final firma un acta: publicar, publicar con excepción o no publicar.
+
+Cada comando de la clase produce una prueba para el acta.
+
+---
+
+# El informe del auditor
+
+| ID | Hallazgo | Bloque |
+|---|---|---|
+| H1 | Imagen root, con pip en runtime y código de root | Laboratorio A |
+| H2 | Sin evidencia de dónde vive la contraseña | Laboratorio A |
+| H3 | Runtime sin límites y base y Redis en red exterior | Laboratorio A |
+| H4 | `latest`, sin gates, sin SBOM y sin criterio para CVEs | Laboratorio B |
+
+La pregunta de fondo: *¿qué se arregla construyendo y qué se arregla ejecutando?*
+
+---
+
+# Agenda de las 4 horas
+
+| Hora | Bloque |
+|---|---|
+| 00:00-00:45 | Presentar el caso y repasar superficie de ataque |
+| 00:45-01:40 | Laboratorio A: cerrar H1, H2 y H3 |
+| 01:50-02:25 | Hallazgo 4: CVEs, SBOM y gates |
+| 02:25-03:10 | Laboratorio B: gates, escaneo y acta |
+| 03:10-03:45 | Auditoría cruzada en parejas |
+| 03:45-04:00 | Acta de salida y cierre del curso |
 
 ---
 
 # Superficie de ataque
 
 ```text
-                 imagen
-        +---------------------+
-        | base + paquetes     |
-        | dependencias        |
-        | código              |
-        | usuario y permisos  |
-        +---------------------+
-                 |
-                 v
-        runtime del contenedor
-        +---------------------+
-        | capacidades         |
-        | sistema de archivos |
-        | red                 |
-        | secretos montados   |
-        +---------------------+
+              imagen
+     +---------------------+
+     | base + paquetes     |
+     | dependencias        |
+     | código              |
+     | usuario y permisos  |
+     +---------------------+
+              |
+              v
+     runtime del contenedor
+     +---------------------+
+     | capacidades         |
+     | sistema de archivos |
+     | red                 |
+     | secretos montados   |
+     +---------------------+
 ```
 
-Un control en la imagen define lo que el proceso puede hacer; un control en el runtime limita lo que ese proceso alcanza. Hacen falta los dos.
+Un control en la imagen define qué puede hacer el proceso. Un control en el runtime limita qué alcanza. Hacen falta los dos.
 
 ---
 
-# La imagen es un artefacto
+# H1: la imagen es un artefacto
 
-- Se construye una vez y se despliega muchas.
+- Se construye una vez y se despliega muchas veces.
 - Se identifica por digest, no por `latest`.
 - Se escanea, se firma y se conserva.
 - Si no sabes qué lleva, no puedes responder a un CVE.
 
 ```bash
 docker image inspect tienda-api:4.0 --format '{{.Id}}'
-docker image inspect tienda-api:4.0 --format '{{index .RepoDigests 0}}'
+docker image inspect tienda-api:4.0 --format '{{.Config.User}} {{.Size}}'
 ```
 
 ---
 
-# Endurecer la imagen
+# H1: construir sin privilegios
 
 ```dockerfile
 RUN groupadd --gid 10001 app \
@@ -77,29 +101,33 @@ COPY --chown=10001:10001 app.py .
 USER 10001:10001
 ```
 
-- UID fijo: Kubernetes puede declararlo sin adivinar.
-- Sin home ni shell de login: menos comodidad para un atacante.
-- `--chown`: el código pertenece al usuario que lo ejecuta.
+- UID fijo para reproducir el control en ejecución.
+- Sin home ni shell de login.
+- El código pertenece a quien lo ejecuta.
+
+`sh` existe en la base slim; lo que se quita es el shell de login del usuario.
 
 ---
 
-# Menos piezas en runtime
+# H1: menos piezas en runtime
 
 ```dockerfile
 RUN rm -rf /usr/local/lib/python3.12/site-packages/pip \
            /usr/local/bin/pip /usr/local/bin/pip3
 ```
 
-El venv ya tiene las dependencias instaladas. pip en runtime solo añade superficie y CVEs.
+El venv ya trae las dependencias. pip en runtime añade superficie y CVEs sin aportar al servicio.
 
-Lo mismo aplica a compiladores, cabeceras y herramientas de build: se quedan en la etapa `builder`.
+Compiladores, cabeceras y herramientas de build se quedan en la etapa `builder`.
+
+**Prueba para el acta:** `docker run --rm --entrypoint python tienda-api:4.0 -c 'import os; print(os.getuid())'`
 
 ---
 
-# Secretos y capas
+# H2: el secreto no es una capa
 
 ```dockerfile
-# Mal: queda en el historial y en la imagen
+# Mal: queda en el historial y en la configuración
 ARG DB_PASSWORD
 ENV DB_PASSWORD=$DB_PASSWORD
 ```
@@ -108,18 +136,17 @@ ENV DB_PASSWORD=$DB_PASSWORD
 # Bien: se monta en ejecución
 secrets:
   - db_password
-```
-
-```yaml
 environment:
   DB_PASSWORD_FILE: /run/secrets/db_password
 ```
 
-Un `ARG` no es secreto. Cualquiera con la imagen puede leer el historial.
+Un `ARG` no es secreto. Cualquiera con la imagen puede leer `docker history`.
+
+**Prueba para el acta:** `docker history tienda-api:4.0 | grep -i password` no debe devolver nada.
 
 ---
 
-# Endurecer el runtime
+# H3: endurecer el runtime
 
 ```yaml
 user: "10001:10001"
@@ -132,14 +159,14 @@ security_opt:
   - no-new-privileges:true
 ```
 
-- `read_only`: no se puede dejar un binario ni modificar el código.
+- `read_only`: no se puede dejar un binario ni cambiar el código.
 - `cap_drop: ALL`: sin `CAP_NET_RAW`, sin `CAP_CHOWN`.
 - `no-new-privileges`: bloquea la elevación por setuid.
 - `tmpfs`: lo mínimo escribible que el proceso necesita.
 
 ---
 
-# El endurecimiento tiene costes
+# H3: el endurecimiento tiene costes
 
 ```text
 Redis con cap_drop: ALL
@@ -148,8 +175,6 @@ Redis con cap_drop: ALL
   -> el contenedor reinicia
 ```
 
-Solución:
-
 ```yaml
 redis:
   user: "999:1000"
@@ -157,60 +182,50 @@ redis:
     - ALL
 ```
 
-El endurecimiento tiene costes, así que cada control se prueba con la imagen concreta. Copiar un bloque de seguridad sin entender la imagen rompe el servicio.
+Copiar un bloque de seguridad sin probar la imagen rompe el servicio. Cada control se justifica.
 
 ---
 
-# Red de mínima exposición
+# H3: red de mínima exposición
 
 ```text
-        host :18030
-             |
-          [ api ]        red edge
-             |
-          [ api ]        red backend (internal)
-           /     \
-      [ db ]   [ redis ]
+       host :18030
+            |
+         [ api ]      red edge
+            |
+         [ api ]      red backend (internal)
+          /     \
+     [ db ]   [ redis ]
 ```
 
 - La base y Redis no salen a Internet.
 - La API es el único puente.
-- Un contenedor solo en una red `internal` no puede publicar puertos.
+- Un contenedor solo en red `internal` no publica puertos.
 
 ---
 
-# Base: slim, alpine o distroless
-
-| Base | Ventaja | Coste |
-|---|---|---|
-| `python:3.12-slim` | Paquetes actualizados, shell para depurar | Más MB y más CVEs de sistema |
-| `python:3.12-alpine` | Menos MB | musl, wheels distintos, más fricción |
-| `gcr.io/distroless/python3` | Sin shell ni gestor de paquetes | Difícil de depurar, sin `exec` cómodo |
-
-La base adecuada depende del equipo y del diagnóstico que pueda permitirse.
-
----
-
-# Cadena de suministro
+# H4: la cadena de suministro
 
 ```text
-código -> build -> imagen -> registry -> clúster
+código -> build -> imagen -> registry -> despliegue
    |        |         |          |          |
- commit   deps     SBOM      firma      admisión
-          lock    escaneo   cosign     digest
+ commit   deps      SBOM      firma     digest
+          lock    escaneo    cosign   verificación
 ```
 
-Cada flecha permite verificar algo; ninguna etapa por separado cubre la cadena.
+Cada flecha permite comprobar algo. Ninguna etapa por separado cubre toda la cadena.
+
+En esta clase se construye, se escanea y se decide con gates. La firma y el despliegue se explican, no se implementan.
 
 ---
 
-# Qué dice un escaneo
+# H4: qué dice un escaneo
 
 ```text
-tienda-api:4.0 (debian 13.7)   2 HIGH
-  zlib1g  CVE-2026-...  fixed
-venv/.../flask-3.0.3          0
-venv/.../gunicorn-22.0.0      0
+tienda-api:4.0 (debian)      2 HIGH
+  zlib1g    CVE-...         fixed
+  venv/flask-3.0.3          0
+  venv/gunicorn-22.0.0      0
 ```
 
 Preguntas correctas:
@@ -218,13 +233,13 @@ Preguntas correctas:
 1. ¿El CVE está en la base o en una dependencia?
 2. ¿Hay versión corregida?
 3. ¿El proceso afectado se usa en runtime?
-4. ¿Qué mitigation existe si no hay parche?
+4. ¿Qué mitigación existe si no hay parche?
 
-Para decidir, mira dónde está el CVE, si hay parche y si el código afectado se usa.
+Un número de CVEs no dice si la imagen es segura.
 
 ---
 
-# Gates deterministas
+# H4: gates deterministas
 
 ```bash
 uid=$(docker run --rm --entrypoint python "$IMAGE" \
@@ -233,106 +248,96 @@ uid=$(docker run --rm --entrypoint python "$IMAGE" \
 [ "$MB" -le "$MAX_MB" ]
 ```
 
-- Mismo código, mismo resultado.
+- La misma imagen da siempre el mismo resultado.
 - No dependen de la base de CVEs del día.
 - Bloquean lo que el equipo puede corregir.
 
-El escaneo se publica como informe. Si se convierte en gate, solo con un umbral acordado.
+El escaneo se publica como informe. Si se convierte en gate, es con umbral, fecha y responsable.
 
 ---
 
-# Pipeline por etapas
+# H4: pipeline por etapas
 
 ```text
 build -> test -> gates -> scan -> sign -> push -> deploy
-          |        |        |       |       |       |
-         unit    user/    SARIF   cosign  digest  approval
-                 size
+          |       |        |       |       |       |
+        unit   user/     SARIF   cosign digest approval
+               size
 ```
 
 - Un fallo en `gates` detiene la publicación.
-- El escaneo puede ser informativo o bloquear `CRITICAL`.
-- La firma y el digest permiten verificar qué se desplegó.
-- El despliegue a producción va con aprobación.
+- El escaneo informa o bloquea `CRITICAL` corregible.
+- La firma y el digest permiten verificar qué se publicó.
+- Trivy sin permisos no sube el SARIF a GitHub.
 
 ---
 
-# GitHub Actions
+# Laboratorio A: 55 minutos
 
-```yaml
-permissions:
-  contents: read
-  security-events: write
+1. Verificar Docker, Compose y el secreto.
+2. Leer el Dockerfile endurecido y compararlo.
+3. Construir y comprobar uid, shell y tamaño.
+4. Levantar el stack con runtime restringido.
+5. Comprobar secretos, capacidades, solo lectura y redes.
 
-steps:
-  - uses: actions/checkout@v4
-  - run: docker build -f clase-02/lab/app/Dockerfile.hardened ...
-  - run: clase-04/lab/ci/verificar-imagen.sh tienda-api:4.0
-  - uses: aquasecurity/trivy-action@0.28.0
-    with:
-      image-ref: tienda-api:4.0
-      format: sarif
-      exit-code: "0"
-```
+Guía: `lab/guia-paso-a-paso.md`, pasos 0 a 3.
 
-El SARIF necesita `security-events: write`. Las credenciales van en `secrets`.
+**Entrega parcial:** evidencia de H1, H2 y H3.
 
 ---
 
-# El mismo control en Kubernetes
+# Laboratorio B: 50 minutos
 
-```yaml
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 10001
-  seccompProfile:
-    type: RuntimeDefault
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: true
-  capabilities:
-    drop: ["ALL"]
-```
+1. Gates en verde y en dos casos de fallo.
+2. Escaneo con Trivy o informe de respaldo.
+3. SBOM en CycloneDX.
+4. Lectura del workflow de GitHub Actions.
+5. Acta de salida con decisión.
 
-El overlay de Kustomize aplica esto sobre la API de la clase 3. No hay una segunda copia del stack.
+Guía: `lab/guia-paso-a-paso.md`, pasos 4 a 6.
+
+**Entrega parcial:** evidencia de H4 y decisión firmada.
 
 ---
 
-# Lab 4a (55 min)
+# Auditoría cruzada: 35 minutos
 
-1. Crear el secreto y validar Compose
-2. Leer el Dockerfile endurecido y compararlo
-3. Construir y comprobar uid, shell y tamaño
-4. Levantar el runtime restringido
-5. Comprobar solo lectura, capacidades y redes
+Cuatro comprobaciones en `lab/retos-auditoria.md`:
 
-Guía: `lab/guia-paso-a-paso.md`
+1. Secreto en el historial de la imagen.
+2. Capacidad de más.
+3. `read_only` sin `tmpfs`.
+4. Etiqueta móvil en el `FROM`.
 
----
-
-# Lab 4b (45 min)
-
-1. Ejecutar los gates en verde y en rojo
-2. Escanear con Trivy y leer el informe
-3. Generar el SBOM
-4. Aplicar el overlay en el clúster de la clase 3
-5. Leer el workflow de GitHub Actions
-6. Entregar evidencias y limpiar
-
-Entregable: stack endurecido + gates + informe + SBOM.
+Una pareja busca, otra decide si es hallazgo real o ruido. Cada pareja explica un control en 30 segundos.
 
 ---
 
-# Errores típicos
+# Errores típicos del caso
 
 | Síntoma | Causa |
 |---|---|
 | Redis reinicia con `setpriv` | `cap_drop: ALL` sin usuario explícito |
-| El puerto no aparece | La API solo está en la red interna |
+| El puerto 18030 no aparece | La API solo está en la red interna |
 | `Read-only file system` | Falta `tmpfs` en `/tmp` |
 | El gate no lee el uid | La imagen no tiene Python |
 | Trivy tarda | Primera descarga de la base |
-| El SARIF no aparece | Falta `security-events: write` |
-| Contraseña en `docker history` | Se pasó como `ARG` |
+| La contraseña aparece en `docker history` | Se pasó como `ARG` o `ENV` |
+
+---
+
+# Acta de salida
+
+`lab/informes/acta-ejemplo.md` → `lab/informes/acta.md`
+
+Cada hallazgo lleva:
+
+- Estado: abierto o cerrado.
+- Evidencia: un comando y su salida.
+- Acción: qué se cambió y por qué.
+- Decisión: publicar, publicar con excepción o no publicar.
+
+La respuesta correcta es la que se sostiene con la evidencia.
 
 ---
 
@@ -340,19 +345,22 @@ Entregable: stack endurecido + gates + informe + SBOM.
 
 Lo que te llevas:
 
-- [ ] Construyo imágenes pequeñas, reproducibles y sin root
-- [ ] Compongo un stack con redes separadas y secretos
-- [ ] Despliego y opero en Kubernetes con probes y recursos
-- [ ] Endurezco imagen y runtime con controles probados
-- [ ] Pongo gates deterministas en un pipeline
-- [ ] Leo un escaneo y un SBOM sin alarmarme por el número
+- [ ] Construyo imágenes pequeñas, reproducibles y sin root.
+- [ ] Compongo un stack con redes separadas y secretos.
+- [ ] Endurezco imagen y runtime con controles probados.
+- [ ] Pongo gates deterministas en un pipeline.
+- [ ] Leo un escaneo y un SBOM sin alarmarme por el número.
+- [ ] Firmo una decisión de publicación con evidencia.
 
 **Siguiente paso:** registry privado, firmas con `cosign`, políticas de admisión y GitOps.
 
+---
+
 <!--
 Notas para el instructor:
+- Leer los cuatro hallazgos en voz alta al empezar y volver a ellos en cada bloque.
 - El error de Redis con cap_drop es la discusión central: no copiar seguridad sin probar.
-- Si no hay Trivy, el paso 5 se explica con la pantalla compartida; el resto del lab no depende de él.
-- No convertir el escaneo en un gate estricto durante la clase: el ruido de CVEs distrae del método.
-- Guardar 10 minutos para cerrar el curso completo y enlazar con el siguiente nivel.
+- Si no hay Trivy, abrir lab/informes/README.md; el resto del laboratorio no depende de él.
+- No convertir el escaneo en gate estricto: el ruido de CVEs distrae del método.
+- Guardar 15 minutos para el acta y el cierre del curso completo.
 -->

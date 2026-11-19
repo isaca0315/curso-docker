@@ -90,15 +90,9 @@ El script `clase-03/preparar-clase.sh` hace la preparación completa y avisa si 
 
 ## Clase 4
 
-El clúster de la clase 3 solo hace falta en el bloque de Kustomize. Puedes tenerlo apagado mientras construyes y escaneas imágenes:
+La clase 4 no usa el clúster de la clase 3. Puede seguir apagado durante toda la sesión: el caso se resuelve con Docker y Compose en el equipo de cada participante.
 
-```bash
-kind delete cluster --name curso
-# bloque de Dockerfile, gates y Trivy
-cd clase-03/lab && kind create cluster --config kind-config.yaml --wait 180s
-```
-
-Trivy descarga una base de datos de CVEs en el primer escaneo y puede llegar a 500 MB de memoria. Ejecuta un escaneo a la vez y usa los informes guardados como respaldo. El demo ya usa `--scanners vuln` y `--quiet`, que es el modo más liviano.
+Trivy descarga una base de datos de CVEs en el primer escaneo y puede llegar a 500 MB de memoria. Ejecuta un escaneo a la vez y usa `clase-04/lab/informes/README.md` como respaldo. El demo ya usa `--scanners vuln` y `--quiet`, que es el modo más liviano.
 
 ## Si aun así no alcanza
 

@@ -53,7 +53,7 @@ La misma aplicación, `tienda-api`, recorre las cuatro clases: se construye, se 
 | Rúbrica del entregable | [`clase-03/evaluacion/rubrica-clase-03.md`](clase-03/evaluacion/rubrica-clase-03.md) |
 | Checklist de Kubernetes | [`clase-03/recursos/checklist-kubernetes.md`](clase-03/recursos/checklist-kubernetes.md) |
 
-## Clase 4: seguridad de la imagen y CI/CD
+## Clase 4: caso de estudio, auditoría de `tienda-api` 4.0
 
 | Material | Enlace |
 |---|---|
@@ -62,7 +62,7 @@ La misma aplicación, `tienda-api`, recorre las cuatro clases: se construye, se 
 | Imagen endurecida | [`clase-02/lab/app/Dockerfile.hardened`](clase-02/lab/app/Dockerfile.hardened) |
 | Gates de CI | [`clase-04/lab/ci/verificar-imagen.sh`](clase-04/lab/ci/verificar-imagen.sh) |
 | Workflow de ejemplo | [`clase-04/lab/ci/github-actions-ci.yml`](clase-04/lab/ci/github-actions-ci.yml) |
-| Overlay de Kubernetes | [`clase-04/lab/k8s/`](clase-04/lab/k8s/) |
+| Acta de salida | [`clase-04/lab/informes/acta-ejemplo.md`](clase-04/lab/informes/acta-ejemplo.md) |
 | Diapositivas | [`clase-04/slides.md`](clase-04/slides.md) · [`slides.pptx`](clase-04/slides.pptx) |
 | Guía del instructor | [`clase-04/README.md`](clase-04/README.md) |
 | Guion de sesión del docente | [`clase-04/guia-docente.md`](clase-04/guia-docente.md) |
@@ -119,7 +119,7 @@ curso-docker/
 │   ├── evaluacion/
 │   └── recursos/
 └── clase-04/
-    ├── lab/                      # compose endurecido, gates, workflow, overlay
+    ├── lab/                      # compose endurecido, gates, workflow, acta
     ├── demos/                    # runtime, escaneo, gates
     ├── evaluacion/
     └── recursos/

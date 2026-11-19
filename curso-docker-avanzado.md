@@ -83,24 +83,24 @@ El ciclo de vida completo queda conectado entre clases.
 **Entregable:** manifiestos YAML aplicados + captura de `kubectl rollout history` y del rollback.
 
 
-## Clase 4: seguridad, CI/CD y mejores prácticas
+## Clase 4: caso de estudio, auditoría de `tienda-api` 4.0
 
-**Objetivos:** endurecer imágenes y contenedores, medir el riesgo con herramientas y automatizar build → escaneo → despliegue dentro de un flujo existente.
+**Objetivos:** cerrar los cuatro hallazgos de un informe de auditoría con Docker y Compose: imagen sin privilegios, secretos fuera de las capas, runtime restringido y pipeline con gates, SBOM y criterio de publicación. No se usa Kubernetes.
 
 **Material de la clase:** [`clase-04/`](clase-04/README.md) (guía del instructor, guion de sesión, diapositivas, lab, retos, demos y rúbrica).
 
 | Hora | Bloque |
 |---|---|
-| 00:00-00:15 | Repaso y dudas de la clase 3 |
-| 00:15-00:55 | **Seguridad de Docker**: superficie de ataque, imagen base y CVEs, usuario no-root, `cap-drop`, `read-only`, `no-new-privileges`, seccomp/AppArmor, límites de recursos, secretos (nunca en la imagen), riesgo del socket de Docker, rootless, benchmarks con `docker-bench-security` |
-| 00:55-01:50 | **Lab 4a**: imagen endurecida de `tienda-api` (usuario sin shell, sin pip en runtime, non-root); ejecutarla con sistema de solo lectura, `cap-drop` y `no-new-privileges`; comprobar identidad, capacidades, tamaño y redes |
-| 01:50-02:00 | Pausa |
-| 02:00-02:40 | **CI/CD para aplicaciones Docker**: etapas build → test → scan → push → deploy, caché de build, tags inmutables (SHA, semver), entornos y promoción, GitOps, integración en un flujo ya existente (GitHub Actions / GitLab CI / Jenkins / Azure DevOps) |
-| 02:40-03:25 | **Lab 4b**: gates deterministas de usuario y tamaño; Trivy como informe y SBOM; overlay de Kubernetes con `securityContext`; workflow de GitHub Actions con SARIF y publicación por digest |
-| 03:25-03:55 | **Retos de auditoría**: secreto en la imagen, capacidad de más, solo lectura sin `tmpfs` y etiqueta móvil; trabajo en parejas |
-| 03:55-04:00 | Entregable, **mejores prácticas de contenedores y orquestación** (checklist final) y cierre del curso |
+| 00:00-00:15 | Presentar el caso y verificar Docker y Compose |
+| 00:15-00:45 | Superficie de ataque: imagen, runtime, secretos y cadena de suministro |
+| 00:45-01:40 | **Laboratorio A**: cerrar H1, H2 y H3 con el Dockerfile endurecido, secretos y runtime restringido |
+| 01:40-01:50 | Pausa |
+| 01:50-02:25 | **Hallazgo 4**: CVEs, SBOM, gates deterministas y etapas del pipeline |
+| 02:25-03:10 | **Laboratorio B**: gates en verde y en rojo, Trivy como informe y acta de salida |
+| 03:10-03:45 | **Auditoría cruzada**: secreto en la imagen, capacidad de más, `read_only` sin `tmpfs` y etiqueta móvil |
+| 03:45-04:00 | Acta, entregable y cierre del curso |
 
-**Entregable:** pipeline con gates + checklist de hardening aplicado a la app.
+**Entregable:** acta de salida con evidencia de los cuatro hallazgos, stack endurecido, gates, informe de escaneo y SBOM.
 
 
 ## Proyecto integrador (transversal)
@@ -108,8 +108,8 @@ El ciclo de vida completo queda conectado entre clases.
 Al final de la clase 4 cada participante entrega el recorrido completo de `tienda-api`:
 
 1. Imagen multi-stage de menos de 300 MB, non-root y con informe de escaneo revisado.
-2. `compose.yaml` con redes separadas, healthchecks y secretos fuera del repo.
-3. Despliegue en `kind` con probes, límites y al menos 2 réplicas.
+2. `compose.yaml` con redes separadas, healthchecks, límites y secretos fuera del repo.
+3. Gates de usuario y tamaño ejecutados sobre la imagen final.
 4. Pipeline que reproduce build, gates, escaneo y SBOM desde un push.
 
 Se evalúa en una demo de 10 min por persona (o parejas si el grupo lo prefiere).

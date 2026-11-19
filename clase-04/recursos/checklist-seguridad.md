@@ -49,11 +49,8 @@
 - [ ] Hay un SBOM generado.
 - [ ] La decisión sobre qué hacer con los CVEs está escrita.
 
-## Kubernetes (opcional)
+## Acta de salida
 
-- [ ] El overlay reutiliza los manifiestos de la clase 3.
-- [ ] `runAsNonRoot` y `runAsUser` coinciden con la imagen.
-- [ ] `readOnlyRootFilesystem` y `allowPrivilegeEscalation: false`.
-- [ ] `capabilities.drop: [ALL]`.
-- [ ] `seccompProfile: RuntimeDefault`.
-- [ ] El pod arranca y responde después del overlay.
+- [ ] Los cuatro hallazgos del auditor están marcados como abiertos o cerrados.
+- [ ] Cada hallazgo tiene un comando y su salida real.
+- [ ] La decisión de publicar está justificada con la evidencia.

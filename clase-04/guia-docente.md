@@ -1,12 +1,14 @@
 # Guía del docente: clase 4
 
-Guion de sesión para las 4 horas. Los tiempos son relativos al inicio (00:00). La guía del alumno es [`lab/guia-paso-a-paso.md`](lab/guia-paso-a-paso.md) y se sigue en paralelo. Es la última clase, así que el cierre repasa el curso completo además de la sesión. El instructor comparte pantalla.
+Guion de sesión para las 4 horas. Es un caso de estudio: el equipo va a publicar `tienda-api` 4.0 y un auditor entregó cuatro hallazgos el viernes. Cada bloque cierra uno. Los tiempos son relativos al inicio (00:00); el instructor comparte pantalla y los participantes trabajan en parejas en su propio equipo. No se usa Kubernetes en esta clase.
+
+La guía del alumno es [`lab/guia-paso-a-paso.md`](lab/guia-paso-a-paso.md) y se sigue en paralelo. Al final cada pareja entrega un acta de salida con la decisión de publicar o no publicar.
 
 ## Modalidad virtual
 
-Cada participante construye la imagen y levanta el stack en su equipo. La imagen base, las dependencias y, si se usa, la base de Trivy se descargan antes de la sesión; un build completo durante la clase depende de la conexión de cada uno.
+Cada participante construye la imagen y levanta el stack en su equipo. La imagen base y las dependencias conviene descargarlas antes de la sesión; el primer build en vivo depende de la conexión de cada uno. El escaneo con Trivy es opcional: si la base de datos no se descarga, se lee el informe guardado en `lab/informes/`.
 
-**Material que conviene tener abierto:** [`slides.md`](slides.md), [`lab/guia-paso-a-paso.md`](lab/guia-paso-a-paso.md), [`lab/retos-auditoria.md`](lab/retos-auditoria.md), [`evaluacion/rubrica-clase-04.md`](evaluacion/rubrica-clase-04.md) y una copia impresa de [`recursos/checklist-seguridad.md`](recursos/checklist-seguridad.md) por participante.
+**Material que conviene tener abierto:** [`slides.md`](slides.md), [`lab/guia-paso-a-paso.md`](lab/guia-paso-a-paso.md), [`lab/retos-auditoria.md`](lab/retos-auditoria.md), [`lab/informes/acta-ejemplo.md`](lab/informes/acta-ejemplo.md), [`evaluacion/rubrica-clase-04.md`](evaluacion/rubrica-clase-04.md) y una copia impresa de [`recursos/checklist-seguridad.md`](recursos/checklist-seguridad.md) por participante.
 
 ## Antes de la clase
 
@@ -18,13 +20,12 @@ Pedir a cada participante que construya la imagen y pruebe el stack el día ante
 cd clase-04/lab
 cp secrets/db_password.txt.example secrets/db_password.txt
 docker compose build api
-docker compose up -d --wait
-docker compose ps
-./ci/verificar-imagen.sh tienda-api:4.0
+docker compose up -d
 curl -s localhost:18030/
+docker compose down
 ```
 
-Descargar las imágenes y, si se va a escanear en la sesión, la base de Trivy:
+La imagen `tienda-api:4.0` se construye en el paso 2 de la guía del alumno; el instructor la tiene lista para la demo. Si Trivy no está instalado, instalarlo antes o dejar el escaneo como lectura del informe guardado.
 
 ```bash
 docker pull python:3.12-slim
@@ -33,187 +34,98 @@ docker pull redis:7-alpine
 trivy image --download-db-only
 ```
 
-Guardar una salida de Trivy y un SBOM en `lab/informes/` por si falla la conexión de algún participante. El laboratorio puede seguir sin Trivy: el escaneo se explica como informe y los gates deterministas no dependen de la base de CVEs.
+### Al inicio de la sesión
 
-### Quince minutos antes
+Comprobar que el puerto 18030 está libre y que no queda un stack de otra clase:
 
-- Comprobar que 18030 está libre: `ss -ltn | grep 18030`.
-- Verificar que `secrets/db_password.txt` existe y no está en Git.
-- Ejecutar una vez [`demos/01-runtime-endurecido.sh`](demos/01-runtime-endurecido.sh) y [`demos/03-gates-ci.sh`](demos/03-gates-ci.sh).
-- Probar el reto 3: `docker compose exec -T api sh -c 'touch /app/x'` debe fallar.
-- Si la clase 4 es al día siguiente de la 3, comprobar que el clúster `curso` sigue vivo y que la imagen `tienda-api:4.0` está cargada en el nodo con `kind load docker-image tienda-api:4.0 --name curso`. Si no hay clúster, el paso 6 del laboratorio es opcional.
+```bash
+docker compose -f clase-04/lab/compose.yaml ps
+ss -ltn | grep 18030 || echo "18030 libre"
+```
+
+Si dos participantes comparten host, asigna un puerto (`18030 + n`) y un nombre de proyecto (`tienda-segura-ana`). En el material se usa el puerto único 18030.
 
 ## Agenda
 
-| Hora | Bloque | Material |
-|---|---|---|
-| 00:00-00:15 | Repaso de la clase 3 y verificación del stack | `docker compose ps` |
-| 00:15-00:55 | Modelo de amenazas: imagen, runtime, secretos, supply chain y privilegios | `slides.md` |
-| 00:55-01:50 | Lab 4a, pasos 0 a 3 | `lab/guia-paso-a-paso.md` |
-| 01:50-02:00 | Pausa | |
-| 02:00-02:40 | CVEs, SBOM, firmas, gates y etapas del pipeline | `slides.md` + `demos/02-escaneo-trivy.sh` |
-| 02:40-03:25 | Lab 4b, pasos 4 a 7 | `lab/guia-paso-a-paso.md` |
-| 03:25-03:55 | Retos de auditoría en parejas | `lab/retos-auditoria.md` |
-| 03:55-04:00 | Entregable, cierre del curso y siguientes pasos | `evaluacion/rubrica-clase-04.md` |
+| Hora | Bloque | Material | Checkpoint |
+|---|---|---|---|
+| 00:00-00:15 | Presentar el caso: informe del auditor y entregable | `slides.md` diapositiva 2 | Cada pareja sabe qué hallazgo cierra |
+| 00:15-00:45 | Superficie de ataque: imagen, runtime, secretos y cadena de suministro | `slides.md` | Diferenciar imagen de runtime |
+| 00:45-01:40 | Laboratorio A: hallazgos 1, 2 y 3 (pasos 0-3) | `lab/guia-paso-a-paso.md` | API responde, `/app` solo lectura, `CapEff=0`, secretos fuera de la imagen |
+| 01:40-01:50 | Pausa | sin material | |
+| 01:50-02:25 | Hallazgo 4: CVEs, SBOM, gates y etapas del pipeline | `slides.md` + `demos/02-escaneo-trivy.sh` | Saber por qué el gate no es la lista de CVEs |
+| 02:25-03:10 | Laboratorio B: gates, escaneo, acta (pasos 4-6) | `lab/guia-paso-a-paso.md` | Gates en verde y en rojo, informe y SBOM abiertos |
+| 03:10-03:45 | Auditoría cruzada en parejas | `lab/retos-auditoria.md` | Cada pareja explica un hallazgo y su control |
+| 03:45-04:00 | Acta de salida, entregable y cierre del curso | `evaluacion/rubrica-clase-04.md` | Decisión de publicar escrita |
 
-La agenda suma 240 min. Los cuatro retos son parte del plan; si el grupo termina antes, se amplía la puesta en común y se recorre el workflow de GitHub Actions. Si sobra más tiempo, [`extra-60-min.md`](extra-60-min.md) tiene tres bloques de 20 min.
+## Guion
 
-## 00:00-00:15. Repaso y entornos
+### 00:00-00:15. Presentar el caso
 
-1. Pedir una frase por persona sobre la clase 3: qué crea un pod, qué hace un Service, diferencia entre readiness y liveness.
-2. Comprobar el stack de la clase 4:
+Proyectar la diapositiva 2 y leer los cuatro hallazgos en voz alta. Repartir parejas. Cada pareja es el equipo de plataforma y debe decidir al final si publica la versión 4.0.
 
-```bash
-cd clase-04/lab
-docker compose ps
-docker image inspect tienda-api:4.0 --format '{{.Config.User}}'
-```
+Pregunta disparadora: *¿cuál de los cuatro hallazgos se arregla con un Dockerfile y cuál solo se arregla en ejecución?* No responder todavía.
 
-3. Presentar el hilo: la imagen de la clase 3 ya funciona en Kubernetes, pero cualquiera que la descargue puede leer su historial, ejecutarla como root o aprovechar una capacidad de más. Hoy se reduce esa superficie y se automatiza la comprobación.
-4. Si alguien no tiene la imagen, construirla ahora. El build tarda menos si `python:3.12-slim` ya está descargada.
+### 00:15-00:45. Superficie de ataque
 
-## 00:15-00:55. Modelo de amenazas
+Recorrer las diapositivas de modelo de amenazas. Marcar la frontera:
 
-Recorrer las diapositivas con preguntas:
+- Imagen: base, dependencias, código, usuario, etiquetas.
+- Runtime: capacidades, sistema de archivos, red, límites, secretos.
+- Cadena de suministro: build, gates, escaneo, firma, publicación.
 
-- Qué lleva la imagen y qué se puede leer en ella.
-- Qué usuario ejecuta el proceso y qué puede escribir.
-- Qué capacidades conserva y qué permite cada una.
-- Dónde viven los secretos y por qué `ENV` no es un sitio seguro.
-- Qué riesgo tiene montar el socket de Docker dentro de un contenedor.
-- Qué diferencia hay entre rootless, usuario no root y `cap_drop`.
-- Qué aporta un escaneo y qué no.
+Frase para repetir en la clase: *lo que se construye no se arregla al ejecutarlo, y lo que se ejecuta no se arregla reconstruyendo la imagen.* Ejemplo: añadir `USER` al Dockerfile no protege si Compose ejecuta `user: root`.
 
-Preguntas: ¿qué control impide escribir un binario en `/app`?, ¿qué control impide que un setuid eleve privilegios?, ¿por qué una imagen pequeña no es automáticamente segura?
+### 00:45-01:40. Laboratorio A, hallazgos 1, 2 y 3
 
-Checkpoint: los 6 distinguen un control de imagen de un control de runtime.
+Los participantes siguen los pasos 0 a 3. El instructor proyecta la guía y corre `demos/01-runtime-endurecido.sh` cuando el stack esté arriba.
 
-## 00:55-01:50. Laboratorio 4a, pasos 0 a 3
+**Checkpoint 1 (01:10).** `docker image inspect` muestra `10001:10001`, el uid en ejecución es 10001 y pip no está. Si alguien construyó la imagen de la clase 2 por error, comparar con `diff -u Dockerfile Dockerfile.hardened`.
 
-Todos trabajan desde `clase-04/lab`. Circular con esta tabla.
+**Checkpoint 2 (01:25).** `docker history tienda-api:4.0 | grep -i password` no devuelve nada y el archivo `secrets/db_password.txt` no aparece en `git status`. Aquí se cierra el hallazgo 2.
 
-| Hora | Deberían estar en | Señal de que va bien |
-|---|---|---|
-| 01:05 | Paso 1 | Identifican usuario sin shell, sin pip y etiquetas OCI |
-| 01:15 | Paso 2 | `uid 10001`, tamaño cercano a 192 MiB, `pip no está` |
-| 01:35 | Paso 3 | Tres servicios `healthy` y la API responde en 18030 |
-| 01:45 | Paso 3, comprobaciones | `/app` rechaza escritura, `/tmp` la acepta, `CapEff` en cero |
-| 01:50 | Paso 3 cerrado | Saben qué control aplica la imagen y cuál el runtime |
+**Checkpoint 3 (01:40).** En la API: `/app/prueba` falla con `Read-only file system`, `/tmp/prueba` funciona y `CapEff` es cero. En la red, `backend` contiene db, redis y api; `edge` solo api.
 
-Puntos donde se traba la gente:
+**El punto del caso: Redis.** Si alguien quita `user: "999:1000"` para "endurecer más", Redis reinicia con `setpriv: setresuid failed`. `cap_drop: ALL` elimina `CAP_SETUID`, que el entrypoint necesita para bajar de root. La corrección es declarar el usuario, no devolver la capacidad. Postgres se deja sin `cap_drop` por el mismo motivo: `gosu` inicializa el volumen. Gastar 5 minutos aquí vale más que media diapositiva.
 
-- Redis reinicia con `setpriv: setresuid failed` si se quita `user: "999:1000"`. Es el mejor ejemplo de que `cap_drop: ALL` tiene coste.
-- `Read-only file system`: falta `tmpfs: /tmp` o el proceso escribe en `/app`.
-- El puerto 18030 no aparece si la API solo está en `backend`. Debe estar también en `edge`.
-- `docker compose exec` falla si el contenedor está reiniciando. Mirar `ps` antes.
-- El tamaño no baja mucho respecto a la clase 2: el objetivo es la superficie, no el disco.
+### 01:50-02:25. Hallazgo 4
 
-Si a las 01:35 alguien sigue en el paso 2, emparejarlo y continuar desde el paso 3 con la imagen ya construida.
+Proyectar `demos/02-escaneo-trivy.sh` si Trivy está instalado; si no, abrir `lab/informes/README.md`. Explicar las tres capas del resultado: base Debian, paquetes Python y CVEs sin corrección.
 
-## 01:50-02:00. Pausa
+La discusión central: el pipeline se bloquea con usuario root o tamaño, no con "hay un CVE". Un CVE nuevo en la base aparece sin que el equipo cambiara nada; si eso detiene la publicación, el equipo aprende a ignorar el rojo. El gate con umbral de `CRITICAL` corregible es una excepción controlada con fecha y responsable.
 
-Comprobar que los 6 tienen los tres servicios sanos y que pueden ejecutar comandos dentro de la API. Resolver ahora los puertos y los volúmenes.
+### 02:25-03:10. Laboratorio B
 
-## 02:00-02:40. CVEs, SBOM y pipeline
+Los participantes ejecutan los gates en verde y en rojo (`python:3.12-slim`, `MAX_MB=50`), generan el SBOM y rellenan el acta con datos reales. Proyectar `demos/03-gates-ci.sh` como referencia.
 
-Explicar sin convertir la clase en una lista de CVEs:
+Aviso antes de empezar: no copiar `ci/github-actions-ci.yml` a `.github/workflows/` en el repositorio del curso. Es un ejemplo para leer; el workflow no está activo.
 
-- Un CVE en la base no siempre es explotable; el contexto decide.
-- El SBOM responde qué lleva la imagen y permite reaccionar después.
-- Los gates deterministas (usuario, tamaño, configuración) no dependen del mundo.
-- El escaneo como gate necesita umbral, fecha y excepciones; si no, el pipeline se rompe solo.
-- Un tag mutable no identifica lo desplegado; el digest sí.
-- El pipeline tiene etapas: build, test, gates, escaneo, firma, publicación y despliegue.
+### 03:10-03:45. Auditoría cruzada
 
-Demo de escaneo, si Trivy está disponible:
+Parejas distintas intercambian hallazgos. Cada pareja muestra una comprobación de `lab/retos-auditoria.md`, dice si es hallazgo real o ruido y nombra el control que lo cierra. Regla: no cambiar el `compose.yaml` de la clase; usar contenedores desechables.
 
-```bash
-cd clase-04/demos
-./02-escaneo-trivy.sh
-```
+Si el tiempo aprieta, hacer los retos 1 y 3 y dejar el 2 y el 4 para casa. Si sobra tiempo, `extra-60-min.md` tiene tres bloques de 20 minutos.
 
-Qué señalar: CVEs de la base y de Python, el SBOM CycloneDX y la diferencia entre un fallo corregible y uno que depende del proveedor.
+### 03:45-04:00. Acta y cierre
 
-Si no hay Trivy o red, abrir el informe guardado en `lab/informes/` y explicar las mismas columnas. No gastar el bloque esperando una descarga.
+Cada pareja lee su decisión: publicar, publicar con excepción documentada o no publicar. No hay una única respuesta correcta si la justificación usa la evidencia del lab.
 
-## 02:40-03:25. Laboratorio 4b, pasos 4 a 7
+Cerrar con el hilo del curso: Docker construyó la app en la clase 1, Compose la conectó en la 2, Kubernetes la orquestó en la 3 y hoy se asegura y se automatiza. Recordar que el entregable vale 10 % del curso y que la demo oral es de 3 minutos.
 
-| Hora | Deberían estar en | Señal de que va bien |
-|---|---|---|
-| 02:55 | Paso 4 | Los gates pasan y saben qué comprueba cada uno |
-| 03:10 | Paso 5 | Informe de Trivy y SBOM, o explicación del informe guardado |
-| 03:20 | Paso 6 | El overlay aplica `securityContext` en Kubernetes, si hay clúster |
-| 03:25 | Paso 7 | Saben qué etapa bloquea la publicación y qué permiso necesita el SARIF |
+## Planes B
 
-Errores de este bloque:
-
-- El gate no puede leer el uid porque la imagen no tiene Python. Ajustar el comando o usar `docker image inspect`.
-- El gate de tamaño falla: revisar qué se copió al runtime, no subir el umbral sin explicar.
-- El SARIF no aparece: falta `security-events: write`.
-- El overlay no encuentra la base: ejecutar desde `lab/` con `-k k8s`.
-- `ImagePullBackOff` en el clúster: `kind load docker-image tienda-api:4.0 --name curso`.
-
-Si el grupo va justo, saltar el paso 6 (Kubernetes) y hacer el 7 leyendo el workflow. El endurecimiento de runtime ya se vio en Compose.
-
-## 03:25-03:55. Retos de auditoría
-
-Presentar [`lab/retos-auditoria.md`](lab/retos-auditoria.md) y trabajar en parejas.
-
-| Min | Reto | Qué se aprende |
-|---|---|---|
-| 03:25-03:32 | 1. Secreto en la imagen | `ENV` y el historial filtran la contraseña |
-| 03:32-03:39 | 2. Capacidad de más | `NET_ADMIN` y el valor de `cap_drop: ALL` |
-| 03:39-03:47 | 3. Solo lectura y `tmpfs` | Qué rompe y qué directorio hay que abrir |
-| 03:47-03:55 | 4. Etiqueta móvil | Tag contra digest y reproducibilidad |
-
-Reglas para el instructor:
-
-- El plan incluye los cuatro retos. Si surge una emergencia de tiempo, el recorte mínimo son los retos 1 y 3; el 2 y el 4 quedan como deberes.
-- No permitir cambios en el `compose.yaml` de la clase. Los retos usan contenedores desechables.
-- En el reto 2, comparar `CapEff` con el de la API. Si la API no da cero, revisar `cap_drop`.
-- En el reto 4, usar el digest que devuelva el comando en ese momento; el ejemplo del documento puede haber cambiado.
-- Al terminar, borrar `/tmp/auditoria` y la imagen `auditoria:env`.
-
-Checkpoint: cada pareja cuenta un hallazgo y el control que lo evita.
-
-## 03:55-04:00. Entregable y cierre del curso
-
-1. Recordar el entregable: stack endurecido, salida de los gates, informe de Trivy y SBOM, y dos frases sobre el gate de tamaño y el Dockerfile endurecido.
-2. Mostrar la rúbrica y el checklist.
-3. Cerrar el curso con tres preguntas al grupo, no una por persona:
-   - ¿Qué control de los que aplicamos cambiaría más el impacto de un proceso comprometido?
-   - ¿Qué no automatizaríamos como gate y por qué?
-   - ¿Qué haría falta para llevar este stack a producción?
-4. Recordar los siguientes pasos: registro de imágenes, firma con `cosign`, políticas con `OPA` o `Kyverno`, escaneo continuo y gestión de secretos.
-5. Limpieza, si no se reutiliza el entorno:
-
-```bash
-cd clase-04/lab
-docker compose down -v
-docker rmi tienda-api:4.0 auditoria:env 2>/dev/null || true
-kind delete cluster --name curso 2>/dev/null || true
-```
-
-No borrar `clase-02/lab/app/Dockerfile.hardened`: es la referencia de la imagen endurecida y la usan las dos clases.
-
-## Si algo falla en vivo
-
-| Síntoma | Qué hacer |
+| Situación | Plan |
 |---|---|
-| Redis reinicia con `setresuid failed` | `cap_drop: ALL` quita `SETUID`; declarar `user: "999:1000"` |
-| El puerto 18030 no aparece | La API solo está en `backend`; añadir `edge` |
-| `Read-only file system` | Falta `tmpfs: /tmp` o el proceso escribe en `/app` |
-| El gate no puede leer el uid | La imagen no tiene Python; ajustar el comando |
-| Trivy tarda o falla por red | Usar el informe guardado; el escaneo no es un gate obligatorio |
-| El SARIF no aparece | Falta `security-events: write` en el workflow |
-| `ImagePullBackOff` | `kind load docker-image tienda-api:4.0 --name curso` |
-| El overlay no encuentra la base | Ejecutar desde `lab/` con `-k k8s` |
-| La contraseña aparece en `docker history` | Se pasó como `ARG` o `ENV`; montarla en ejecución |
-| El grupo va atrasado | Saltar el paso 6 y hacer los retos 1 y 3; el resto queda para casa |
+| Un equipo no puede descargar la imagen base | Usar la imagen `tienda-api:4.0` que el instructor construyó y saltar el build en vivo |
+| Trivy no instala o da 429 | Abrir `lab/informes/README.md`, explicar capas y marcar el escaneo como lectura |
+| `docker compose up` falla por puerto ocupado | Cambiar el mapeo a `18030 + n` y el nombre del proyecto |
+| El grupo va retrasado a las 02:25 | Hacer los gates en verde y en rojo, recortar la auditoría a los retos 1 y 3 |
+| El grupo termina antes | `extra-60-min.md`: Trivy a fondo, runtime a mano, secretos de build con digest |
+| Se rompe el stack de un participante | `docker compose down -v` y repetir desde el paso 0; los volúmenes solo guardan datos de prueba |
 
-## Después de la clase
+## Notas para el instructor
 
-- Revisar que los entregables incluyan la salida real de los gates y un informe, además de las capturas.
-- Cerrar el curso con una nota de qué quedó pendiente por participante.
-- Guardar los informes de Trivy y los SBOM como ejemplo para la siguiente edición.
-- Si cambiaste algo del material, actualizar `slides.md` y las capturas de resultados medidos.
+- El error de Redis con `cap_drop: ALL` es esperado y formativo. No lo corrijas antes de que aparezca.
+- `sh` sigue existiendo en `python:3.12-slim`. Lo que se quita es el shell de login del usuario; para quitar el intérprete hace falta otra base. No prometas lo contrario.
+- El SBOM cambia con la fecha de la imagen base. No memorices el número de CVEs; lee el informe del día.
+- Si alguien pregunta por firmas o políticas de admisión: se explican, pero no se implementan porque requieren registry y clúster. El entregable se queda en Docker y Compose.

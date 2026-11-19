@@ -1,6 +1,6 @@
 # Lab 4: índice
 
-Práctica de la clase 4: construir una imagen de `tienda-api` sin privilegios, ejecutarla con el runtime restringido y poner gates en un pipeline de CI.
+Caso de estudio de la clase 4: auditoría de `tienda-api` 4.0. Cerrar cuatro hallazgos con Docker y Compose, guardar la evidencia y firmar un acta de salida.
 
 ## Empieza aquí
 
@@ -12,12 +12,13 @@ La guía incluye resultados medidos, el fallo de Redis con `cap_drop` y las deci
 
 | Archivo | Contenido |
 |---|---|
-| [`guia-paso-a-paso.md`](guia-paso-a-paso.md) | Guía completa (pasos 0-8) |
-| [`retos-auditoria.md`](retos-auditoria.md) | Cuatro comprobaciones de auditoría para el bloque de cierre |
+| [`guia-paso-a-paso.md`](guia-paso-a-paso.md) | Guía completa (pasos 0-6) |
+| [`retos-auditoria.md`](retos-auditoria.md) | Cuatro comprobaciones de auditoría cruzada |
 | [`compose.yaml`](compose.yaml) | Stack con `read_only`, `cap_drop`, `no-new-privileges` y red interna |
 | [`ci/verificar-imagen.sh`](ci/verificar-imagen.sh) | Gates de usuario y tamaño, Trivy opcional |
 | [`ci/github-actions-ci.yml`](ci/github-actions-ci.yml) | Ejemplo de workflow para copiar a `.github/workflows/` |
-| [`k8s/`](k8s/) | Overlay de Kustomize sobre los manifiestos de la clase 3 |
+| [`informes/acta-ejemplo.md`](informes/acta-ejemplo.md) | Plantilla del acta de salida |
+| [`informes/README.md`](informes/README.md) | Informe y SBOM de respaldo si Trivy no está disponible |
 | [`secrets/db_password.txt.example`](secrets/db_password.txt.example) | Plantilla del secreto; el archivo real no se versiona |
 | [`../demos/01-runtime-endurecido.sh`](../demos/01-runtime-endurecido.sh) | Usuario, solo lectura, capacidades y redes |
 | [`../demos/02-escaneo-trivy.sh`](../demos/02-escaneo-trivy.sh) | CVEs y SBOM |

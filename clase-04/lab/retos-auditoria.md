@@ -1,10 +1,10 @@
 # Retos de auditoría: clase 4
 
-Cuatro comprobaciones para encontrar lo que un Dockerfile y un `docker run` dejan a la vista. Se hacen después del lab 4a, con la imagen `tienda-api:4.0` construida.
+Cuatro comprobaciones para encontrar lo que un Dockerfile y un `docker run` dejan a la vista. Son la auditoría cruzada del caso de estudio y se hacen después del laboratorio A, con la imagen `tienda-api:4.0` construida.
 
 | Dato | Valor |
 |---|---|
-| Duración | 30 min |
+| Duración | 35 min |
 | Directorio | `clase-04/lab` |
 | Requisito | Imagen `tienda-api:4.0` y stack levantado |
 | Formato | Parejas: una persona busca, la otra decide si es un hallazgo real |

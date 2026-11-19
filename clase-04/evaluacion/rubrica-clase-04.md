@@ -2,45 +2,29 @@
 
 **Peso en el curso:** 10 % del total (los 4 entregables suman 40 %).
 **Aprobación del entregable:** 70 / 100.
-**Evidencia:** `compose.yaml` endurecido + salida de gates + informe de Trivy y SBOM + demo de 3 minutos.
+**Evidencia:** `lab/informes/acta.md` + stack endurecido + salida de gates + informe de Trivy o `lab/informes/README.md` + SBOM + demo de 3 minutos.
+
+El caso de estudio se evalúa sobre los cuatro hallazgos del auditor. Cada criterio se demuestra con un comando o con una línea del acta.
 
 | Criterio | Peso | 4: Excelente | 3: Correcto | 2: Incompleto | 1: Insuficiente |
 |---|---|---|---|---|---|
-| Imagen sin privilegios | 25 | UID fijo, sin shell de login y sin pip en runtime; el gate lo demuestra | Usuario no root, con algún resto innecesario | Usuario declarado pero el proceso arranca como root | Root |
-| Runtime restringido | 20 | Solo lectura, `cap_drop: ALL`, `no-new-privileges` y `/tmp` acotado | La mayoría de controles, con uno ausente | Solo uno o dos controles | Sin controles |
-| Red y secretos | 15 | Base interna, API como único puente y contraseña fuera de la imagen | Red separada, secreto en variable | Una red o secreto versionado | Expone la base y la contraseña |
-| Gates de CI | 20 | Gates deterministas de usuario y tamaño, con caso de fallo documentado | Gates presentes pero sin probar el fallo | Script que solo imprime información | No hay gates |
-| Escaneo y SBOM | 10 | Informe leído, SBOM generado y decisión justificada | Informe generado sin interpretación | Solo ejecuta la herramienta | No lo hace |
-| Explicación oral | 10 | Explica un control de imagen, uno de runtime y por qué el gate no es el escaneo | Responde con ayuda | Confunde imagen con runtime | No puede explicarlo |
+| Imagen sin privilegios (H1) | 25 | UID fijo, sin shell de login y sin pip en runtime; el gate lo demuestra | Usuario no root, con algún resto innecesario | Usuario declarado pero el proceso arranca como root | Root |
+| Runtime restringido (H3) | 20 | Solo lectura, `cap_drop: ALL`, `no-new-privileges`, `/tmp` acotado y límites; explica el caso de Redis | La mayoría de controles, con uno ausente | Solo uno o dos controles | Sin controles |
+| Red y secretos (H2) | 15 | Base interna, API como único puente, contraseña fuera de la imagen y `docker history` limpio | Red separada, secreto en variable | Una red o secreto versionado | Expone la base y la contraseña |
+| Gates y decisión de publicación (H4) | 20 | Gates deterministas en verde y en rojo, SBOM, lectura por capas de los CVEs y decisión justificada en el acta | Gates presentes pero sin probar el fallo o acta incompleta | Script que solo imprime información | Sin gates y sin criterio de publicación |
+| Auditoría cruzada y demo | 10 | Explica un hallazgo ajeno con su control y responde en la demo las tres preguntas | Responde dos de tres | Responde una | No participa |
 
-## Checklist de evidencia
+## Preguntas de la demo (3 minutos)
 
-- [ ] `docker compose config --quiet` termina sin errores.
-- [ ] `docker compose ps` muestra la API, Postgres y Redis en `healthy`.
-- [ ] `docker image inspect tienda-api:4.0` declara `10001:10001`.
-- [ ] `docker run --rm --entrypoint python tienda-api:4.0 -c 'import os; print(os.getuid())'` devuelve 10001.
-- [ ] `docker compose exec -T api sh -c 'touch /app/x'` falla por solo lectura.
-- [ ] `CapEff` es `0000000000000000`.
-- [ ] `./ci/verificar-imagen.sh tienda-api:4.0` termina en verde.
-- [ ] El gate falla con `python:3.12-slim` y con `MAX_MB=50`.
-- [ ] Hay un informe de Trivy y un SBOM generado.
-- [ ] `secrets/db_password.txt` no está en `git status`.
+1. ¿Qué control se arregla en la imagen y cuál solo en ejecución?
+2. ¿Por qué Redis necesita un usuario explícito con `cap_drop: ALL`?
+3. ¿Por qué el gate no es la lista de CVEs del día?
 
-## Preguntas de la demo (3 min por alumno)
+## Cierre de la clase
 
-Se eligen al azar; se evalúa la explicación, no la memoria:
+1. ¿Qué control añadirías después de este curso en un entorno de producción?
+2. ¿Qué cambia en la cadena de suministro cuando publicas por digest y no por `latest`?
 
-1. ¿Qué diferencia hay entre un CVE de la base y uno de una dependencia de Python?
-2. ¿Por qué la contraseña no puede ir en un `ARG`?
-3. ¿Qué impide `read_only: true` que no impide `USER`?
-4. ¿Por qué Redis necesita un usuario explícito si se quitan las capacidades?
-5. ¿Qué hace `no-new-privileges` y qué ataque bloquea?
-6. ¿Por qué el gate de tamaño no depende de la base de CVEs?
-7. ¿Cuándo convertirías Trivy en un gate que falla el pipeline?
-8. ¿Para qué sirve un SBOM si ya escaneas la imagen?
-9. ¿Qué ventaja tiene desplegar por digest en lugar de por etiqueta?
-10. ¿Qué control añadirías después de este curso en un clúster de producción?
+## Límite del laboratorio
 
-## Nota sobre el alcance
-
-El laboratorio no firma imágenes ni configura políticas de admisión. Se explican en la clase porque completan la cadena de suministro, pero requieren un registry, `cosign` y un clúster con un webhook de admisión. El entregable se centra en lo que se puede construir y verificar en un equipo.
+El laboratorio no firma imágenes ni configura políticas de admisión. Se explican en clase porque completan la cadena de suministro, pero requieren registry, `cosign` y un clúster con webhook de admisión. El entregable se centra en lo que se puede construir y verificar con Docker y Compose en el equipo de cada participante.
