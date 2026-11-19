@@ -14,10 +14,10 @@ Cada participante construye la imagen y levanta el stack en su equipo. La imagen
 
 Además del caso 1, hay dos guiones de 4 horas que usan el mismo laboratorio y la misma rúbrica:
 
-- [`casos/caso-incidente.md`](casos/caso-incidente.md): un archivo inesperado en `/app` obliga a preservar evidencia, reproducir la escritura y escribir un postmortem.
-- [`casos/caso-publicacion.md`](casos/caso-publicacion.md): un CVE sin corrección obliga a decidir si se publica con excepción, con SBOM, gates y responsable de la revisión.
+- [`casos/caso-incidente.md`](casos/caso-incidente.md) y [`caso-incidente.pptx`](casos/caso-incidente.pptx): un archivo inesperado en `/app` obliga a preservar evidencia, reproducir la escritura y escribir un postmortem.
+- [`casos/caso-publicacion.md`](casos/caso-publicacion.md) y [`caso-publicacion.pptx`](casos/caso-publicacion.pptx): un CVE sin corrección obliga a decidir si se publica con excepción, con SBOM, gates y responsable de la revisión.
 
-Cada caso trae su agenda, sus hallazgos y una plantilla de entregable. Se pueden usar en otra edición del curso o repartir entre parejas dentro de la misma sesión. No requieren diapositivas nuevas: proyecta las del caso 1 y abre el caso alternativo cuando empieces.
+Cada caso trae su agenda, sus hallazgos, sus diapositivas y una plantilla de entregable. Se pueden usar en otra edición del curso o repartir entre parejas dentro de la misma sesión. Las diapositivas del caso 1 siguen siendo [`slides.pptx`](slides.pptx).
 
 ## Antes de la clase
 

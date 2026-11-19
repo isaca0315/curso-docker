@@ -19,11 +19,11 @@ La clase se trabaja en parejas. Cada pareja es el equipo de plataforma: cierra l
 
 El laboratorio es el mismo para los tres guiones. Cambia el encargo, el orden de trabajo y el entregable.
 
-| Caso | Situación | Entregable |
-|---|---|---|
-| Caso 1, auditoría previa | Informe del auditor antes del lanzamiento | Acta de salida |
-| [Caso 2, incidente](casos/caso-incidente.md) | Aparece un archivo inesperado en `/app` | Informe postmortem |
-| [Caso 3, publicación con excepción](casos/caso-publicacion.md) | CVE nuevo sin corrección la noche anterior | Acta de publicación |
+| Caso | Situación | Entregable | Diapositivas |
+|---|---|---|---|
+| Caso 1, auditoría previa | Informe del auditor antes del lanzamiento | Acta de salida | [`slides.pptx`](slides.pptx) |
+| [Caso 2, incidente](casos/caso-incidente.md) | Aparece un archivo inesperado en `/app` | Informe postmortem | [`caso-incidente.pptx`](casos/caso-incidente.pptx) |
+| [Caso 3, publicación con excepción](casos/caso-publicacion.md) | CVE nuevo sin corrección la noche anterior | Acta de publicación | [`caso-publicacion.pptx`](casos/caso-publicacion.pptx) |
 
 Los casos 2 y 3 usan los mismos archivos de `lab/`. No añaden contenedores ni requieren más memoria que el caso 1.
 
