@@ -10,6 +10,15 @@ Cada participante construye la imagen y levanta el stack en su equipo. La imagen
 
 **Material que conviene tener abierto:** [`slides.md`](slides.md), [`lab/guia-paso-a-paso.md`](lab/guia-paso-a-paso.md), [`lab/retos-auditoria.md`](lab/retos-auditoria.md), [`lab/informes/acta-ejemplo.md`](lab/informes/acta-ejemplo.md), [`evaluacion/rubrica-clase-04.md`](evaluacion/rubrica-clase-04.md) y una copia impresa de [`recursos/checklist-seguridad.md`](recursos/checklist-seguridad.md) por participante.
 
+## Casos alternativos
+
+Además del caso 1, hay dos guiones de 4 horas que usan el mismo laboratorio y la misma rúbrica:
+
+- [`casos/caso-incidente.md`](casos/caso-incidente.md): un archivo inesperado en `/app` obliga a preservar evidencia, reproducir la escritura y escribir un postmortem.
+- [`casos/caso-publicacion.md`](casos/caso-publicacion.md): un CVE sin corrección obliga a decidir si se publica con excepción, con SBOM, gates y responsable de la revisión.
+
+Cada caso trae su agenda, sus hallazgos y una plantilla de entregable. Se pueden usar en otra edición del curso o repartir entre parejas dentro de la misma sesión. No requieren diapositivas nuevas: proyecta las del caso 1 y abre el caso alternativo cuando empieces.
+
 ## Antes de la clase
 
 ### El día anterior

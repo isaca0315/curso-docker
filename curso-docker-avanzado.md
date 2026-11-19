@@ -87,7 +87,7 @@ El ciclo de vida completo queda conectado entre clases.
 
 **Objetivos:** cerrar los cuatro hallazgos de un informe de auditoría con Docker y Compose: imagen sin privilegios, secretos fuera de las capas, runtime restringido y pipeline con gates, SBOM y criterio de publicación. No se usa Kubernetes.
 
-**Material de la clase:** [`clase-04/`](clase-04/README.md) (guía del instructor, guion de sesión, diapositivas, lab, retos, demos y rúbrica).
+**Material de la clase:** [`clase-04/`](clase-04/README.md) (guía del instructor, guion de sesión, diapositivas, lab, retos, demos y rúbrica). Incluye dos casos alternativos de 4 horas sobre el mismo laboratorio: [`casos/`](clase-04/casos/).
 
 | Hora | Bloque |
 |---|---|

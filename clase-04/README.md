@@ -2,7 +2,7 @@
 
 **Duración:** 4 h · **Participantes:** 6 · **Requisitos:** Docker Engine 24+ o Docker Desktop 4.30+ y Compose v2.24+. No se necesita Kubernetes.
 
-## El caso
+## Caso 1: auditoría previa al lanzamiento
 
 El equipo va a publicar la versión 4.0 de la API de la tienda. Un auditor externo entregó cuatro hallazgos el viernes anterior al lanzamiento:
 
@@ -15,6 +15,18 @@ El equipo va a publicar la versión 4.0 de la API de la tienda. Un auditor exter
 
 La clase se trabaja en parejas. Cada pareja es el equipo de plataforma: cierra los cuatro hallazgos con Docker y Compose, guarda la evidencia y al final firma un acta de salida con decisión de publicar o no publicar. El caso da sentido a cada comando: nada se hace solo porque sí.
 
+## Casos disponibles
+
+El laboratorio es el mismo para los tres guiones. Cambia el encargo, el orden de trabajo y el entregable.
+
+| Caso | Situación | Entregable |
+|---|---|---|
+| Caso 1, auditoría previa | Informe del auditor antes del lanzamiento | Acta de salida |
+| [Caso 2, incidente](casos/caso-incidente.md) | Aparece un archivo inesperado en `/app` | Informe postmortem |
+| [Caso 3, publicación con excepción](casos/caso-publicacion.md) | CVE nuevo sin corrección la noche anterior | Acta de publicación |
+
+Los casos 2 y 3 usan los mismos archivos de `lab/`. No añaden contenedores ni requieren más memoria que el caso 1.
+
 ## Materiales
 
 | Archivo | Para qué |
@@ -23,6 +35,7 @@ La clase se trabaja en parejas. Cada pareja es el equipo de plataforma: cierra l
 | `slides.pptx` | Presentación lista para proyectar |
 | `extra-60-min.md` | Tres bloques de 20 min si el grupo termina antes |
 | `guia-docente.md` | Guion de sesión: preparación, tiempos, checkpoints y planes B |
+| `casos/` | Dos guiones alternativos de 4 horas sobre el mismo laboratorio |
 | `lab/guia-paso-a-paso.md` | Guía del alumno, organizada por los cuatro hallazgos |
 | `lab/retos-auditoria.md` | Auditoría cruzada en parejas, cuatro comprobaciones |
 | `lab/compose.yaml` | Stack con runtime endurecido, secretos y red interna |

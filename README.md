@@ -66,6 +66,7 @@ La misma aplicación, `tienda-api`, recorre las cuatro clases: se construye, se 
 | Diapositivas | [`clase-04/slides.md`](clase-04/slides.md) · [`slides.pptx`](clase-04/slides.pptx) |
 | Guía del instructor | [`clase-04/README.md`](clase-04/README.md) |
 | Guion de sesión del docente | [`clase-04/guia-docente.md`](clase-04/guia-docente.md) |
+| Casos alternativos de 4 h | [`clase-04/casos/`](clase-04/casos/) |
 | Hora extra (3 bloques de 20 min) | [`clase-04/extra-60-min.md`](clase-04/extra-60-min.md) |
 | Retos de auditoría | [`clase-04/lab/retos-auditoria.md`](clase-04/lab/retos-auditoria.md) |
 | Rúbrica del entregable | [`clase-04/evaluacion/rubrica-clase-04.md`](clase-04/evaluacion/rubrica-clase-04.md) |

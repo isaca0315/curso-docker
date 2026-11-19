@@ -4,7 +4,7 @@
 **Aprobación del entregable:** 70 / 100.
 **Evidencia:** `lab/informes/acta.md` + stack endurecido + salida de gates + informe de Trivy o `lab/informes/README.md` + SBOM + demo de 3 minutos.
 
-El caso de estudio se evalúa sobre los cuatro hallazgos del auditor. Cada criterio se demuestra con un comando o con una línea del acta.
+El caso de estudio se evalúa sobre los cuatro hallazgos del auditor. Cada criterio se demuestra con un comando o con una línea del acta. En los casos alternativos de `casos/`, se sustituye el acta de salida por el informe postmortem o por el acta de publicación; los criterios técnicos no cambian.
 
 | Criterio | Peso | 4: Excelente | 3: Correcto | 2: Incompleto | 1: Insuficiente |
 |---|---|---|---|---|---|
