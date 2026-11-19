@@ -102,7 +102,7 @@ USER 10001:10001
 ```
 
 - UID fijo para reproducir el control en ejecución.
-- Sin home ni shell de login.
+- Sin directorio home creado y sin shell de login.
 - El código pertenece a quien lo ejecuta.
 
 `sh` existe en la base slim; lo que se quita es el shell de login del usuario.

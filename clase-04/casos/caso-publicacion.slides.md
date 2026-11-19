@@ -123,7 +123,7 @@ El pipeline anterior solo miraba tamaño: la imagen root habría pasado.
 # P4: regresión en Redis
 
 ```bash
-docker compose config | grep -A3 -E '^  redis:|cap_drop|user:'
+docker compose config | sed -n '/^  redis:/,/^  api:/p' | grep -E 'user:|cap_drop|ALL|read_only'
 docker compose up -d
 docker compose exec -T redis sh -c 'grep -E "Cap(Eff|Bnd)" /proc/self/status'
 ```

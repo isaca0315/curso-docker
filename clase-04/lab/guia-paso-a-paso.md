@@ -99,7 +99,7 @@ diff -u ../../clase-02/lab/app/Dockerfile ../../clase-02/lab/app/Dockerfile.hard
 | Cambio | Hallazgo que cierra | Por qué |
 |---|---|---|
 | `groupadd` y `useradd` con UID y GID 10001 | H1 | Fija el usuario que ejecuta el proceso |
-| `--no-create-home` y `--shell /usr/sbin/nologin` | H1 | No hay home ni shell de login si alguien consigue ejecutar un comando |
+| `--no-create-home` y `--shell /usr/sbin/nologin` | H1 | No se crea el directorio home y el usuario no tiene shell de login |
 | `rm -rf` de pip en runtime | H1 | El venv ya tiene las dependencias; pip solo amplía la superficie |
 | `COPY --chown=10001:10001` | H1 | El código pertenece al usuario que lo ejecuta, no a root |
 | Etiquetas OCI | H4 | El artefacto se puede identificar y rastrear por versión |
@@ -145,7 +145,7 @@ Comprueba que el shell de login no existe:
 docker run --rm --entrypoint sh tienda-api:4.0 -c 'getent passwd app'
 ```
 
-**Esperado:** la línea termina en `/usr/sbin/nologin`. `sh` sigue existiendo en la imagen, porque `python:3.12-slim` lo incluye; el usuario no lo tiene como shell. Para quitar también `sh` hace falta una base distroless y renunciar al `exec` interactivo.
+**Esperado:** la línea termina en `/usr/sbin/nologin`. El campo home aparece como `/home/app`, pero el directorio no existe porque `useradd` se llamó con `--no-create-home`. Puedes comprobarlo con `ls -ld /home/app`. `sh` sigue existiendo en la imagen, porque `python:3.12-slim` lo incluye; el usuario no lo tiene como shell. Para quitar también `sh` hace falta una base distroless y renunciar al `exec` interactivo.
 
 **Evidencia para el acta:** copia la salida de `docker image inspect` y de `docker run --entrypoint python`.
 
@@ -263,9 +263,10 @@ El script hace tres comprobaciones que siempre dan el mismo resultado para la mi
 2. Lee `Config.User` de la imagen.
 3. Compara el tamaño con `MAX_MB`.
 
-Prueba los dos fallos:
+Prueba los dos fallos. Si la imagen base no está en local, descárgala primero: el build con BuildKit no siempre deja la base etiquetada en el equipo.
 
 ```bash
+docker pull python:3.12-slim
 ./ci/verificar-imagen.sh python:3.12-slim || true
 MAX_MB=50 ./ci/verificar-imagen.sh tienda-api:4.0 || true
 ```

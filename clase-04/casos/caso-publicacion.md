@@ -55,7 +55,7 @@ Una imagen construida en local no tiene `RepoDigests`. Ese valor aparece cuando 
 Revisa la regresión de P4:
 
 ```bash
-docker compose config | grep -A3 -E '^  redis:|cap_drop|user:'
+docker compose config | sed -n '/^  redis:/,/^  api:/p' | grep -E 'user:|cap_drop|ALL|read_only'
 docker compose up -d
 docker compose exec -T redis sh -c 'grep -E "Cap(Eff|Bnd)" /proc/self/status'
 ```

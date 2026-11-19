@@ -53,10 +53,10 @@ docker network inspect tienda_segura_edge --format 'edge: {{range .Containers}}{
 
 Si se conserva el contenedor del incidente, `docker diff <contenedor>` muestra los archivos añadidos. Si ya no existe, se trabaja con la imagen y se documenta que la evidencia original se perdió. Ese detalle también entra en el postmortem.
 
-Reproduce la condición I1 con un contenedor desechable, sin las opciones del compose:
+Reproduce la condición I1 con un contenedor desechable. `--user 0` simula el RC que corría como root, sin las opciones del compose:
 
 ```bash
-docker run --rm --name prueba-escritura --entrypoint sh tienda-api:4.0 \
+docker run --rm --user 0 --name prueba-escritura --entrypoint sh tienda-api:4.0 \
   -c 'touch /app/marcador && echo "escritura posible"'
 ```
 
@@ -64,7 +64,7 @@ Compara con el stack endurecido:
 
 ```bash
 docker compose exec -T api sh -c 'touch /app/marcador' || echo "/app protegido en el stack"
-docker compose exec -T api sh -c 'grep -E "Cap(Eff|NoNewPrivs)" /proc/self/status'
+docker compose exec -T api sh -c 'grep -E "CapEff|NoNewPrivs" /proc/self/status'
 ```
 
 Sobre I2, la pareja solo documenta la rotación. No cambia la contraseña del volumen de Postgres en clase: un volumen ya inicializado no vuelve a leer `POSTGRES_PASSWORD_FILE`. La evidencia que se entrega es la comprobación de que la contraseña no está en la imagen y de que el secreto se monta desde archivo.

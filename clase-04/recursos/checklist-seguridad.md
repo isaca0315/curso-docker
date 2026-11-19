@@ -6,7 +6,7 @@
 
 - [ ] La imagen declara un usuario distinto de root.
 - [ ] El proceso arranca con un UID sin privilegios.
-- [ ] El usuario no tiene shell de login ni home.
+- [ ] El usuario no tiene shell de login y no se crea su directorio home.
 - [ ] El código se copia con `--chown`.
 - [ ] pip y las herramientas de build no están en la etapa final.
 - [ ] Las dependencias tienen versión fija.

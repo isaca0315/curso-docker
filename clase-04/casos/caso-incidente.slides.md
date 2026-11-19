@@ -66,15 +66,15 @@ Si se conserva el contenedor original, `docker diff` muestra los archivos añadi
 # I1: reproducir la escritura
 
 ```bash
-docker run --rm --name prueba-escritura --entrypoint sh tienda-api:4.0 \
+docker run --rm --user 0 --name prueba-escritura --entrypoint sh tienda-api:4.0 \
   -c 'touch /app/marcador && echo "escritura posible"'
 ```
 
-Compara con el stack endurecido:
+`--user 0` simula el RC que corría como root. Compara con el stack endurecido:
 
 ```bash
 docker compose exec -T api sh -c 'touch /app/marcador' || echo "/app protegido"
-docker compose exec -T api sh -c 'grep -E "Cap(Eff|NoNewPrivs)" /proc/self/status'
+docker compose exec -T api sh -c 'grep -E "CapEff|NoNewPrivs" /proc/self/status'
 ```
 
 La diferencia no está en el código. Está en cómo se ejecuta.

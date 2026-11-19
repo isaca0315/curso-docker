@@ -22,7 +22,7 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-  echo "La imagen $IMAGE no existe. Construye con: docker compose build api" >&2
+  echo "La imagen $IMAGE no existe. Descárgala con: docker pull $IMAGE. Si es la imagen del curso, constrúyela con: docker compose build api" >&2
   exit 2
 fi
 
